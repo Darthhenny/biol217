@@ -78,6 +78,7 @@ Edit GUI via FILE-connect to server
 
 
 -submit a script --> sbatch <jobscript>
+-see the status --> squeue -u sunam236
 
 ------------------------------------------------------------------
 Environments (specific room for certin tasks): Conda/Miniconda
