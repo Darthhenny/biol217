@@ -1,5 +1,4 @@
-# DAY1
-## Introduction to Linux
+# How to write in visual studio code
 
 1. Point 1
 2. Point 2
