@@ -2,7 +2,7 @@
 
 ![image](./images/Bandage_day3.png)
 
-The Pictures shows our contig. Colour is chosen according to the binning, the length is the length of the sequence, and loops represent k-merks with multiple continuing options. Alot of the smaller fragments cant be assigned to contigs
+The Pictures shows our contigs. Colour is chosen according to assumed genomes, the length is the length of the sequence, and loops represent k-merks with multiple continuing options. Alot of the smaller fragments cant be assigned to contigs
 # 2. 
  ## What is N50?
  N50 is the contig length, where at least 50% of the contigs are equal or longer.
