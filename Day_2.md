@@ -5,9 +5,10 @@
 ~$ ssh -X sunam236@caucluster.rz.uni-kiel.de
 ```
 
-## copy testscript to personal home 
+## copy testscript from teacher-home to personal workspace
 ```
-cp anviscript /home/sunam236/
+cd /home/sunam226
+cp anviscript /work_beegfs/sunam236/
 ```
 Script eddited and saved as script_day2
 
@@ -136,4 +137,5 @@ jobinfo
 ```
 ```
 sbatch script_day2_assembly
+squeue -u sunam236
 ```

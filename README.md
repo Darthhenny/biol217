@@ -19,9 +19,16 @@ Create a `new folder`
 ```
 mkdir test
 ```
-------
-How to make a github readme file
+To create a hyperlink use []  ()
 
-check check
-check again
-check a third time 
+[Google](https://google.com/)
+
+
+To display a picture
+
+* create a folder for the images in the repo
+* copy image into the folder
+* then use the hyperlink ![] ()
+![image](./images/poster.png)
+
+

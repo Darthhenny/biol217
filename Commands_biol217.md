@@ -1,10 +1,10 @@
 -open Terminal --> ctr-alt-t
-    password: unikiel
+    pw: unikiel
 
     Create code in visual code studio mit markdown
 
 sunam (supercomputer): 236 --> ssh -X sunam236@caucluster.rz.uni-kiel.de
-    -Password:biol217_2022
+    -Pw:biol217_2022
 
 -clear screen --> ctr l
 -redo previous command --> Arrowup
@@ -88,3 +88,22 @@ Environments (specific room for certin tasks): Conda/Miniconda
 
 -Aktivieren/Deactivieren --> conda activate/deactivate
 -create a new environment --> conda create -n rna_seq
+
+----------------------------------------------
+Push to Github:
+-either via visual studio connection
+-or via the website
+-or via Console:
+setup github
+```
+git config --global user.name "Name"
+git config --global user.email "email"
+git init
+git clone [url to repo]
+```
+push to github
+```
+git status
+git add
+git status
+git commit -m "[descriptive message]"
