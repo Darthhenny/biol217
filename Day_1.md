@@ -1,3 +1,8 @@
 # Day1
 
-testi test
+Learn linux
+
+Learn to push to github
+
+Learn to connect to CAU cluster
+
