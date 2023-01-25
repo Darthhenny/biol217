@@ -42,7 +42,7 @@ cd Desktop/Bandage/
 ```
 cp ../../day2/script_day2
 ```
-run the script 
+run the script: script_metaquast.sh 
 ```
 !/bin/bash
 #SBATCH --nodes=1
@@ -68,3 +68,107 @@ jobinfo
 ```
 cp -r /home/sunam226/Day3/3_metaquast_out /work_beegfs/sunam236/day3/
 ```
+----------------------------------
+# Binning
+changing name
+```
+anvi-script-reformat-fasta final.contigs.fa -o /work_beegfs/sunam236/day3/contigs.anvio.fa --min-len 1000 --simplify-names --report-file name_conversion.txt
+```
+
+Change script to: binning_script
+```#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=10G
+#SBATCH --time=1:00:00
+#SBATCH --job-name=binning
+#SBATCH --output=binning.out
+#SBATCH --error=binning.err
+#SBATCH --partition=all
+#SBATCH --reservation=biol217
+
+#load and activate anvio environment
+module load miniconda3/4.7.12.1
+conda activate /home/sunam236/.conda/envs/anvio
+#Binning
+anvi-script-reformat-fasta final.contigs.fa -o /work_beegfs/sunam236/day3/contigs.anvio.fa --min-len 1000 --simplify-names--report-file name_conversion.txt
+#this prints the required resources into your logfile
+jobinfo
+```
+*not working, due to conda error. so copied final file from teacher*
+----------------------
+# mapping
+create a new script: mapping.sh
+```#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=10G
+#SBATCH --time=1:00:00
+#SBATCH --job-name=mapping
+#SBATCH --output=mapping.out
+#SBATCH --error=mapping.err
+#SBATCH --partition=all
+#SBATCH --reservation=biol217
+
+#load and activate anvio environment
+module load miniconda3/4.7.12.1
+source activate /home/sunam236/.conda/envs/anvio
+#mapping_2
+bowtie2-build /work_beegfs/sunam236/day3/4_mapping/contigs.anvio.fa /work_beegfs/sunam236/day3/4_mapping/contigs.anvio.fa.index
+#this prints the required resources into your logfile
+jobinfo
+```
+create a new scrip: mapping_s.sh <br> 
+takes a long time 
+```
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=10G
+#SBATCH --time=1:00:00
+#SBATCH --job-name=mapping_2
+#SBATCH --output=mapping_2.out
+#SBATCH --error=mapping_2.err
+#SBATCH --partition=all
+#SBATCH --reservation=biol217
+
+#load and activate anvio environment
+module load miniconda3/4.7.12.1
+source activate /home/sunam236/.conda/envs/anvio
+#mapping_2
+cd ./2_fastp/
+for i in  `ls *mapped_R1.fastq.gz`;
+do
+    second=`echo ${i} | sed 's/_R1/_R2/g'`
+    bowtie2 --very-fast -x ../4_mapping/contigs.anvio.fa.index -1 ${i} -2 ${second} -S ../4_mapping/"$i".sam 
+done
+#this prints the required resources into your logfile
+jobinfo
+```
+-----------------------------------
+# sam tools
+create a new script: sam.sh
+```#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=10G
+#SBATCH --time=1:00:00
+#SBATCH --job-name=sam
+#SBATCH --output=sam.out
+#SBATCH --error=sam.err
+#SBATCH --partition=all
+#SBATCH --reservation=biol217
+
+#load and activate anvio environment
+module load miniconda3/4.7.12.1
+source activate /home/sunam236/.conda/envs/anvio
+module load samtools
+#mapping_2
+cd ./4_mapping/
+for i in *.sam; do samtools view -bS $i > "$i".bam; done
+#this prints the required resources into your logfile
+jobinfo
+```
+
+
+
