@@ -11,3 +11,5 @@ The Pictures shows our contigs. Colour is chosen according to assumed genomes, t
 57 414
 ## What is the total length of the contigs?
 145675865 Bp
+
+`continued on day 4`

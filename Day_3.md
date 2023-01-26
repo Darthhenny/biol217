@@ -2,7 +2,7 @@
 
 ## acces HPC-server (old one because they set up a new one) 
 ```
-~$ ssh -X sunam236@caucluster-old.rz.uni-kiel.de
+ssh -X sunam236@caucluster-old.rz.uni-kiel.de
 ```
 Create new folders for today
 ```
@@ -169,6 +169,6 @@ for i in *.sam; do samtools view -bS $i > "$i".bam; done
 #this prints the required resources into your logfile
 jobinfo
 ```
-
+*Did not finish, so anvio will be done tomorrow*
 
 
