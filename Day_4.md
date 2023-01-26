@@ -213,6 +213,8 @@ squeue -u sunam236
 ```
 
 # Mags quality estimation
+`skipped steps to get to here`
+
 See the amoubt of bins 
 ```
 module load miniconda3/4.7.12.1
