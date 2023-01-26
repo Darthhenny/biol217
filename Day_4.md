@@ -212,7 +212,7 @@ sbatch script_metabat2.sh
 squeue -u sunam236
 ```
 
-#Mags quality estimation
+# Mags quality estimation
 See the amoubt of bins 
 ```
 module load miniconda3/4.7.12.1
