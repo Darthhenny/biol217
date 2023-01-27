@@ -35,7 +35,8 @@ Gunc output:
 
 # Day4 Nr.3
 * how abundant are the archea bins in the 3 samples<br>
-  1.76 | 1.14 | 0.58
+  * Metabat: 1.76 | 1.14 | 0.58
+  * Concoct: 0.96 | 0.00 | 0.40
 ----------------------
 # Day 5 Nr1
 * Species assignment to the archea? <br>
@@ -43,6 +44,7 @@ Bin_METABAT__25_sub1	total_length:1661314	num_contigs:205	N50:9690	GC_content:59
 
 
 * Does the high quality bin assignment need revision
-  probably not close to 95% completion and close to 5% redundancy. But more revision is always better if you got the time and money for it
+  * For the metabat-Archea: probably not close to 95% completion and close to 5% redundancy. But more revision is always better if you got the time and money for it
+  * The other archea needs more refinement
 
   
