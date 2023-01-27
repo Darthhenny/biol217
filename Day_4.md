@@ -236,3 +236,6 @@ source activate /home/sunam225/miniconda3/miconda4.9.2/usr/etc/profile.d/conda.s
 cd
 anvi-interactive -p ./PROFILE.db -c ./contigs.db -C ../../consolidated_bins
 ```
+
+
+*`still not finished with day 3 script`*
