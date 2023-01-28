@@ -14,7 +14,7 @@
 Everything is in one line. To break line use \
 Backslash
 
-1. Basic linux commands
+1. Basic linux commands \
 Create a `new folder`
 ```
 mkdir test
