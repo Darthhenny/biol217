@@ -34,6 +34,9 @@ sunam (supercomputer): 236 --> ssh -X sunam236@caucluster.rz.uni-kiel.de
     -copy to other folder --> cp (filename) (new directory9
      -copy file to previous directory --> cp (filename) ..\
 
+-head (see the first 10 lines of a file)
+-tail (see the last 10 lines of a file)
+
 -edit a file --> cat >> (filename)
     -wedit anything
     -when finished --> ctr C

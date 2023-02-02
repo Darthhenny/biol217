@@ -14,7 +14,7 @@
 Everything is in one line. To break line use \
 Backslash
 
-1. Basic linux commands \
+1. Basic linux commands
 Create a `new folder`
 ```
 mkdir test
@@ -32,3 +32,13 @@ To display a picture
 ![image](./images/poster.png)
 
 
+# Programms used:
+* Linux console
+* Visul studio code (documentation in .md to github repo)
+* Sublime text (scripts in .sh)
+* shh super computer CAUcluster
+
+
+# Protocol:
+* document what youve done with each command
+* Not down what each flag of the command does
