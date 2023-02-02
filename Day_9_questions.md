@@ -37,10 +37,10 @@ ggplot(df, aes(seq_type,name, fill=log2fold_change))+geom_tile() +
 ![image](images/novel_genes_identifier.png)
 ```
 ggplot(df_identifier, aes(method,Identifier, fill=log2FC))+geom_tile() +
-  scale_fill_gradient(low='blue', high='grey') +
+  scale_fill_gradient(low='blue', high='grey',) +
   theme_linedraw() + 
   labs( x = "mRNA", y = "Identifier") +
-  guides(fill=guide_legend(title="Ribosome profiling")) +
+  guides(fill=guide_legend(title="Log2FC")) +
   ggtitle("Novel genes identifier") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )
 ```
