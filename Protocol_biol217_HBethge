@@ -89,15 +89,185 @@ done
 ## 1.2 Assembled reads into contigs/fasta
 The processed data was assembled using `Megahit`.
 ```
+cd /work_beegfs/sunam236/day2/clean_reads
+
 megahit -1 BGR_130305_R1.fastq.gz -1 BGR_130527_R1.fastq.gz -1 BGR_130708_R1.fastq.gz -2 BGR_130305_R2.fastq.gz -2 BGR_130527_R1.fastq.gz -2 BGR_130708_R2.fastq.gz --min-contig-len 1000 --presets meta-large -m 0.85 -o ../megahit -t 20   
 ```
-The contigs were transformde into FASTG filed and visualized in `Bandage`  
+The contigs were transformde into FASTG files to visualized in `Bandage`. 
+```
+cd /day3/3_coassembly/
+
+megahit_toolkit contig2fastg 99 final.contigs.fa > final.contigs.fastg       
+```          
+Open Bandage and Load the file
 
 **<u>Question 1**: <br> 
 Submit your generated figure and explain shortly what you can see </u>
+![image](./images/Bandage_day3.png)
+The picture shows the de novo created contigs from the processed reads
+* The length of each line represents the length of the contig sequence
+* Loops represent k-mers with multiple cintinuing options
+* The colour is selected based on assumed MAG assignment
+* The smaller fragments are reads, that were not able to be assigned to any of the longer contigs 
 -------------------------------
 ## 1.3 Asses quality of assemblies
+The quality assesment of the megahit results is performed with `Quast`. The output is given as PDF and html.
+```
+cd /work_beegfs/sunam236/3_coassembly/
+
+metaquast -t 6 -o ../3_metaquast/ -m 1000 final.contigs.fa
+```
+*This step did not work due to a conda permission error, so the outpout was copied from a backup*
+
+**<u>Question 2**: <br> 
+What is your N50 value?</u>
+* 2963 
+
+<u>How many contigs are assembled?</u>
+* 57414
+
+<u>Whats is the total length of the contigs?</u>
+* 145675865 Bp = 145,7 Mbp
+
 ----------------------------------
 ## 1.4 Bin contigs into MAGs
+Binning of the contigs: <br>
+To make the next steps easier the contig names were shortened *This step was performed directly in the console, without a bash script*
+```
+anvi-script-reformat-fasta final.contigs.fa -o /work_beegfs/sunam236/day3/contigs.anvio.fa --min-len 1000 --simplify-names--report-file name_conversion.txt
+```
+Afterwards the bins are mapped in a loop, so every final.contigs.fasta recieves a corresponding mapping file. 
+```
+module load bowtie2
+cd ./2_fastp/
+
+for i in  `ls *mapped_R1.fastq.gz`;
+do
+    second=`echo ${i} | sed 's/_R1/_R2/g'`
+    bowtie2 --very-fast -x ../4_mapping/contigs.anvio.fa.index -1 ${i} -2 ${second} -S ../4_mapping/"$i".sam 
+done
+```
+The output are sequence mapping files (.sam), which were converted to binary alignment and map files (.bam).
+```
+module load samtools
+
+cd ./4_mapping/
+
+for i in *.sam; do samtools view -bS $i > "$i".bam; done
+```
+#### Anvi'o
+From here on `anvio` commands are used. <br> The **An**anlysis and **Vi**sualization plattform for microbial **'O**mics combines many of the computational strategies of data-enabled microbiology.
+
+A contigs.db file was created, which contains key information associated with the sequences. <br> This command computes k-mer frequencies for each contig, soft-split contigs > 20000 bp into smaller ones and identif open reading frames using Prodigal.
+
+```
+cd /work_beegfs/sunam236/day3/
+
+anvi-gen-contigs-database -f ./4_mapping/contigs.anvio.fa -o ./5_anvio_profiles/contigs.db -n 'biol217'
+```
+Afterwards a Hidden Markov Models (HMM) was run on the contigs, searching for specific single copy core genes with known functions. 
+``` 
+anvi-run-hmms -c ./5_anvio_profiles/contigs.db 
+```
+
+Visualizing the result with anvi'o interactive (directly in the console):
+```
+srun --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 --partition=all /bin/bash
+```
+Note the accessed node
+```
+conda activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
+
+anvi-display-contigs-stats contigs.db
+```
+Open a new terminal, not logged into HPC
+```
+ssh -L 8060:localhost:8080 sunam236caucluster-old.rz.uni-kiel.de
+
+ssh -L 8080:localhost:8080 node???
+```
+Open http://127.0.0.1:8060/ in your browser
+#### Binning with Anvio
+Sort and index the .bam files with `samtools` in anvi'o.
+```
+cd ./4_mapping/
+
+for i in *.bam; do anvi-init-bam $i -o ../5_anvio_profiles/"$i".sorted.bam; done
+```
+Create an anvio profile to store sample-specific information about the contigs in a single profile. <br> It processes only contigs >2500 nt.<br>
+Processing includes:
+* Recovery of mean coverage, SD of coverage and average coverage for the inner quartiles.
+* Characterization of single nucleotide variants (SNVs)
+```
+cd ./5_anvio_profiles
+
+for i in `ls *.sorted.bam | cut -d "." -f 1`; do anvi-profile -i "$i".fastq.gz.sam.bam.sorted.bam -c contigs.db -o ../6_profiling/$i; done
+```
+This created a folder containing profiles.db and a .txt log.<br>
+
+In the next steps all profiles of the different samples were merched into one:
+```
+cd ./6_profiling/
+
+anvi-merge ./BGR_130305_mapped_R1/PROFILE.db ./BGR_130527_mapped_R1/PROFILE.db ./BGR_130708_mapped_R1/PROFILE.db -o ./ -c ../5_anvio_profiles/contigs.db --enforce-hierarchical-clustering
+```
+In this course two different Binners were used: `Metabat2` and `Concoct`. The result of both Binners were consolidated using `DASTool`. *The binning steps did not work, so the files were copied from a back up*
+
+###### Binning with Metabat2
+```
+cd ./6_profiling/
+
+anvi-merge ./BGR_130305_mapped_R1/PROFILE.db ./BGR_130527_mapped_R1/PROFILE.db ./BGR_130708_mapped_R1/PROFILE.db -o ./ -c ../5_anvio_profiles/contigs.db --enforce-hierarchical-clustering
+```
+###### Binning with CONCOCT
+```
+anvi-cluster-contigs -p /PATH/TO/merged_profiles/PROFILE.db -c /PATH/TO/contigs.db -C consolidated_bins --driver dastool -T 20 --search-engine diamond -S METABAT,CONCOCT --log-file log_consolidation_of_bins --just-do-it
+
+anvi-summarize -p /PATH/TO/merged_profiles/PROFILE.db -c /PATH/TO/contigs.db -o /PATH/TO/SUMMARY_consolidated_bins -C consolidated_bins
+```
+###### Consolidating bins with DASTool
+```
+anvi-cluster-contigs -p /PATH/TO/merged_profiles/PROFILE.db -c /PATH/TO/contigs.db -C consolidated_bins --driver dastool -T 20 --search-engine diamond -S METABAT,CONCOCT --log-file log_consolidation_of_bins --just-do-it
+
+anvi-summarize -p /PATH/TO/merged_profiles/PROFILE.db -c /PATH/TO/contigs.db -o /PATH/TO/SUMMARY_consolidated_bins -C consolidated_bins
+```
+*From here the previously mentioned copied files were used to awnser the questions and proceed with the quality estimation.*
+
+**<u>Question 3**: <br> 
+* Number of Archaea bins from MetaBAT2: </u><br>
+  3
+* <u>Number of Archaea bins from CONCOCT:</u><br>
+  2
+* <u>Numer of Archaea bins from consolidating:</u><br>
+  2
+### MAGs quality estimation
+See the amount of bins
+```
+anvi-estimate-genome-completeness -p PROFILE.db -c contigs.db --list-collection
+```
+Visualize it through anvi-interactive (directly in the console)
+```
+srun --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 --partition=all /bin/bash
+```
+Note the accessed node
+```
+conda activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
+
+anvi-interactive -p ./PROFILE.db -c ./contigs.db -C ../../consolidated_bins
+```
+open a new terminal, not logged into CAUcluster
+```
+ssh -L 8060:localhost:8080 sunam236@caucluster-old.rz.uni-kiel.de
+ssh -L 8080:localhost:8080 node010
+```
+Open in a Browser: http://127.0.0.1:8060/
+
+![image](images/Collection__consolidated_bins__for_merged_profiles.svg)
+
+**<u>Question 4**: <br> 
+* Which binning strategy gives the best quality archea bins:</u><br>
+  dastool (consolidated) gives the best quality, which was expected since it it not a binner itself and just merges the results of the two binners. MEtabat2 seems to be better than CONCOCT for our data.
+* <u>How many archaea bins do you get of high quality</u><br>
+  2
 ---------------------------------
 ## 1.5 Asses completeness, contamination and strain heterogeniety of the MAGs
