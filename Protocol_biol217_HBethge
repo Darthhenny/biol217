@@ -269,5 +269,118 @@ Open in a Browser: http://127.0.0.1:8060/
   dastool (consolidated) gives the best quality, which was expected since it it not a binner itself and just merges the results of the two binners. MEtabat2 seems to be better than CONCOCT for our data.
 * <u>How many archaea bins do you get of high quality</u><br>
   2
+
+Check the binning quality for all three. Result is saved in working directory
+```
+anvi-estimate-genome-completeness -c ./contigs.db -p ./PROFILE.db -C consolidated_bins > genome_completeness_dastool
+
+anvi-estimate-genome-completeness -c ./contigs.db -p ./PROFILE.db -C METABAT > genome_completeness_metabat2
+
+anvi-estimate-genome-completeness -c ./contigs.db -p ./PROFILE.db -C CONCOCT > genome_completeness_concoct
+```
+
+### Bin refinement
+From this point only the archea bins are used. <br>
+Create a summary folder with *anvi-summarize* containing a comprehensive overview of the collection and statistics created by anvio.
+```
+anvi-summarize -c ./contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db -C consolidated_bins -o ./5_anvio_profiles/summary --just-do-it
+```
+Copy the archea bins to a seperate folder
+```
+cd ./5_anvio_profiles/summary/bin_by_bin
+
+mkdir ../../archea_bin_refinement
+
+cp ./Bin_Bin_1_sub/*.fa ../../archea_bin_refinement/
+
+cp ./Bin_METABAT__25/*.fa ../../archea_bin_refinement/
+```
 ---------------------------------
 ## 1.5 Asses completeness, contamination and strain heterogeniety of the MAGs
+
+### Chimera detection
+**G**genome **UNC**cluttered (`GUNC`) was used to detect chimeric MAGs.
+
+```
+conda activate /home/sunam226/gunc
+
+cd ../../archea_bin_refinement
+mkdir GUNC
+
+cd /work_beegfs/sunam236/Day5/5_anvio_profiles/archea_bin_refinement
+
+for i in *.fa; do gunc run -i "$i" -r /home/sunam226/Databases/
+
+gunc_db_progenomes2.1.dmnd --out_dir GUNC --threads 10 --detailed_output; done
+```
+look at the output file (.tsv) to see if a MAG is chimeric or not (clade seperation score)
+
+
+**<u>Question 5**: <br> 
+* Do you get Archea bins that are chimeric:</u><br>
+  *clade seperation index close to one = chimeric* <br>
+metabat archea = not chmieric <br>
+* species level =0.9 <br>
+Concoct archea =  <br>
+* kingdom, phylum, class = chimeric
+* After class it isnt marked as chimeric, because the groups have not been named yet
+* <u>Explain what a chimeric bin is in your own words</u><br>
+  A chimeric bin contains a MAG that is created from more than one genome. So a mixture of at least two different species
+
+### Manual bin refinement
+*Only for the non chimeric bins*
+Remove the redundant parts through the interactive anvio interface, by pre-selecting the better MAGs (<70% completeness)
+`Before starting, create a copy/backup of the unrefinde bins in ARCHEA_BIN_REFINEMENT.` The manual refinement will overwrite the unrefined files.
+```
+srun --reservation=biol217 --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 /bin/bash
+```
+Note the accessed node
+```
+anvi-refine -c ./4_mapping/contigs.db -C consolidated_bins -p ./5_anvio_profiles/merged_profiles/PROFILE.db --bin-id Bin_METABAT__25
+```
+open a new terminal, not logged into CAUcluster
+```
+ssh -L 8060:localhost:8080 sunam236@caucluster-old.rz.uni-kiel.de
+ssh -L 8080:localhost:8080 node010
+```
+Open in a browser:  http://127.0.0.1:8060/
+
+**<u>Question 6**: <br> 
+* Does the quality of your Archea
+ improve?:</u><br>
+    * Before: Comp.:97.4   Red.:5.3
+    * After:  Comp.:93.4   Red.:5.3
+    * after removing some bins clustered by difference, the composition reduced but the redundancy stayed the same. So visually the quality increases, but the redundancy score did not reduce.
+* <u>Explain what a chimeric bin is in your own words</u><br>
+  A chimeric bin contains a MAG that is created from more than one genome. So a mixture of at least two different species
+![image](images/Refining_Bin_METABAT__25_from__consolidated_bins.svg)
+
+**<u>Question 7**: <br> 
+* How abundant are the archea bins in the 3 samples</u><br>
+  * Metabat: 1.76 | 1.14 | 0.58
+  * Concoct: 0.96 | 0.00 | 0.40
+* <u>you can also use anvi-inspect -p -c, anvi-script-get-coverage-from-bam or, anvi-profile-blitz. Please look up the help page for each of those commands and construct the appropriate command line</u><br>
+
+### Taxonomic assignment
+Add taxonomic annotations to the MAGs through the single copy core genes (SCGs)
+```
+anvi-run-scg-taxonomy -c ./4_mapping/contigs.db -T 20 -P 2
+
+anvi-estimate-scg-taxonomy -c ./4_mapping/contigs.db --metagenome-mode
+```
+estimate the abundance of rRNAs in  the dataset
+```
+anvi-estimate-scg-taxonomy -c ./4_mapping/contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db --metagenome-mode --compute-scg-coverages --update-profile-db-with-taxonomy
+```
+Save the output from the terminal:
+```
+anvi-estimate-scg-taxonomy -c ./4_mapping/contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db --metagenome-mode --compute-scg-coverages --update-profile-db-with-taxonomy > temp.txt
+```
+Recieve one final summary of all the info from the consolidated bins
+```
+anvi-summarize -c ./contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db -C consolidated_bins -o ./5_anvio_profiles/summary2 --just-do-it
+```
+Rename bins_summary.txt to .tsv and open with libre office
+
+
+DAY6!!!!!!!!!!!!!
