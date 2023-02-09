@@ -644,7 +644,39 @@ Can the organism do methanogenesis? Does it have genes similar to a bacterial se
 
 
 # 3. RNA-Seq analysis DAY7!!!!!!!!!!!!!!!!!!!
+## 3.1 Download the Data
+The dataset used came from a publication by `Prasse et al. 2017`. 
 
+Find the SRR number from the paper to download:
+```
+conda activate /home/sunam226/.conda/envs/grabseq
+grabseqs -t 4 -m ./metadata.csv SRR4018514 SRR4018515 SRR4018516 SRR4018517
+```
+or download the entire project:
+```
+conda activate /home/sunam226/.conda/envs/grabseq
+grabseqs -t 4 -m SRP081251
+```
+## 3.2 Quality control (fastqc & fastp)
+Create a fastqc output folder and run `fastqc`. <br>
+Afterwards run `fastp`. <br>
+Run multiqc to see a summary of all files at once. <br>
+``` 
+mkdir ../qc_reports
+
+for i in *.fastq.gz; do fastqc -t 4 -o ../qc_reports/fastqc_output $i; done
+
+for i in *.fastq.gz; do fastp -i $i -o ${i}_cleaned.fastq.gz -h ../qc_reports/${i}_fastp.html -j ${i}_fastp.json -w 4 -q 20 -z 4; done
+
+cd ..
+multiqc -d . -o ./qc_reports/multiqc_output 
+```
+## 3.3 READemption
+`READemption` is a pipeline used for computational evaluation of RNA-Seq data. Since multiple steps take a while to complete, the entire pipeline will be run in one script. <br>
+The 
+-----------------------------
+here
+-----------------------------------
 ```
 conda activate /home/sunam226/.conda/envs/reademption
 
