@@ -1,6 +1,5 @@
 Protocol_bio217_Hendrik Bethge 
-TEST2
-# MAGs
+# 1. MAGs
 ## 1.Metagenome assembled Genomes (MAGs)
 The goal of this project was to learn how to handle and interprete metagenomic data from the raw read to the assembled MAGs. 
 
@@ -452,8 +451,15 @@ The worst MAGs are: <br>
       * Contains no approx. bacterial genome
 ## 3.Create pangenome (Directory: 03_pangenome)
 A Pangenome visualizes entire genomes for comparison. Comparison is based on essential and accessory gene clusters, phylogenetic relationships and genome qualities.
-### Create a external genome file
-First a "external genome file" needs to be created to input which genomes and MAGs should be used
+### 2.2.1 Create a external genome file
+First a "external genome file" needs to be created to input which genomes and MAGs should be used, as a table with two coloumns:
+
+| name          | contigs_db_path                   |
+| ------------- | --------------------------------- |
+| Bin1          | /path/to/contigs-bin-01-120311.db |
+| Genome-name   | /path/to/contigs-genome-name.db   |
+
+A anvio script can create the input information for us.
 ```
 cd /03_pangenome/
 anvi-script-gen-genomes-file --input-dir ../02_contigs-dbs/ -o external_genomes.txt
@@ -603,6 +609,8 @@ Final pangenom view
 * The functions should not be impaired, since SCGs are probably highly conserved, due to their very important and essential functionality
 * The aminoacid structe differs though, but probably not effecting the polarity, or structure in the protein
   * M.flavescens and Bin 9 differ from the other four. They share the same SNPs, deletions, or insetions compared to the other four bins
+## 2.7 BlastKOALA (Bonus)
+Besides Anvi'o there are a lot of tools available for metabolism investigations. BlastKOALA is one of them, which creates a metabolic profile of the genome based on KEGG database. 
   
 ![image](images/SCG_day06.png)
 
