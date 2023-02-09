@@ -1,6 +1,6 @@
 Protocol_bio217_Hendrik Bethge 
 # 1. MAGs
-## 1.Metagenome assembled Genomes (MAGs)
+## 1.1 Metagenome assembled Genomes (MAGs)
 The goal of this project was to learn how to handle and interprete metagenomic data from the raw read to the assembled MAGs. 
 
 This process consists of five steps:
@@ -80,7 +80,7 @@ Unless specified otherwise the commands were run in a miniconda environment.
 | GUNC | 1.0.5 | [GUNC](https://grp-bork.embl-community.io/gunc/ ) |
 
 -----------------------------
-## 1.1 Pre-processing of the raw reads
+## 1.2 Pre-processing of the raw reads
 The raw read were copied ito my working directory
 ```
 mkdir /work_beegfs/sunam236/day2
@@ -103,7 +103,7 @@ do
 done
 ```
 --------------------------------------
-## 1.2 Assembled reads into contigs/fasta
+## 1.3 Assembled reads into contigs/fasta
 The processed data was assembled using `Megahit`.
 ```
 cd /work_beegfs/sunam236/day2/clean_reads
@@ -127,7 +127,7 @@ The picture shows the de novo created contigs from the processed reads
 * The colour is selected based on assumed MAG assignment
 * The smaller fragments are reads, that were not able to be assigned to any of the longer contigs 
 -------------------------------
-## 1.3 Asses quality of assemblies
+## 1.4 Asses quality of assemblies
 The quality assesment of the megahit results is performed with `Quast`. The output is given as PDF and html.
 ```
 cd /work_beegfs/sunam236/3_coassembly/
@@ -147,7 +147,7 @@ What is your N50 value?</u>
 * 145675865 Bp = 145,7 Mbp
 
 ----------------------------------
-## 1.4 Bin contigs into MAGs
+## 1.5 Bin contigs into MAGs
 Binning of the contigs: <br>
 To make the next steps easier the contig names were shortened *This step was performed directly in the console, without a bash script*
 ```
@@ -313,7 +313,7 @@ cp ./Bin_Bin_1_sub/*.fa ../../archea_bin_refinement/
 cp ./Bin_METABAT__25/*.fa ../../archea_bin_refinement/
 ```
 ---------------------------------
-## 1.5 Asses completeness, contamination and strain heterogeniety of the MAGs
+## 1.6 Asses completeness, contamination and strain heterogeniety of the MAGs
 
 ### Chimera detection
 **G**genome **UNC**cluttered (`GUNC`) was used to detect chimeric MAGs.
@@ -399,8 +399,8 @@ anvi-summarize -c ./contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db 
 ```
 Rename bins_summary.txt to .tsv and open with libre office
 
-# Pangenomics - comparing genomes
-## Evaluation of the starting databases (Directory: 02_contigs-dbs)
+# 2. Pangenomics - comparing genomes
+## 2.1 Evaluation of the starting databases 
 For the pangenomics a new set of contigs.dbs were used. They containg already prepared MAGs from the Biogasreactor and a complete Methanogen genome. 
 
 Files were created for us in Day6: 
@@ -425,31 +425,31 @@ ssh -L 8080:localhost:8080 node010
 Open in a Browser: http://127.0.0.1:8060/
 
 **<u>Question 7**: <br> 
-* How do the MAGs compare in size and number of contigs to the full genome?</u><br>
+How do the MAGs compare in size and number of contigs to the full genome?</u><br>
 ![image](images/Contigs.png)
   * The bins are all smaller than the full Methano_mflavenscens genome. They differ from 1.3 mbp to 2.6 mb 
   * The contig number is much higher, since the full genome only cosists of 1 contig. Most of the contigs are > 2.5 kb 
   * The longest contigs vary between 14 kb and 65 kb (compared to 3.2 mb of the full genome) 
-  * HMM (single copy core genes) differ from 43 to 80. the complete genome contains 72
-* <u> Based on the contigs number, size and number of marker genes (HMM hits), which two MAGs are the best and which is the worst? </u> <br>
+  * HMM (single copy core genes) differ from 43 to 80. the complete genome contains 72 <br>
+  <u> Based on the contigs number, size and number of marker genes (HMM hits), which two MAGs are the best and which is the worst? </u> <br>
 The worst MAGs are: <br>
-* 10 
-    * Contains a lot of Contigs smaller than 2.5 kb
-    * The least HMM archea hits 
-    * Shortest total length
-* 5 
-      * No approx. genome found 
-      * To few HMM hits 
-      * Alot of contigs below 2.5 kb
+* 10 <br>
+    * Contains a lot of Contigs smaller than 2.5 kb<br>
+    * The least HMM archea hits <br>
+    * Shortest total length<br>
+* 5 <br>
+      * No approx. genome found <br>
+      * To few HMM hits <br>
+      * Alot of contigs below 2.5 kb<br>
  The best MAGs are: <br>
-* 13 
-      * Most contigs above 20kb
-      * Most archea HMM hits
-* 9 
-      * Most contigs above 10 kb
-      * Longest total length
-      * Contains no approx. bacterial genome
-## 3.Create pangenome (Directory: 03_pangenome)
+* 13 <br>
+      * Most contigs above 20kb<br>
+      * Most archea HMM hits<br>
+* 9 <br>
+      * Most contigs above 10 kb<br>
+      * Longest total length<br>
+      * Contains no approx. bacterial genome<br>
+## 2.2 Create pangenome 
 A Pangenome visualizes entire genomes for comparison. Comparison is based on essential and accessory gene clusters, phylogenetic relationships and genome qualities.
 ### 2.2.1 Create a external genome file
 First a "external genome file" needs to be created to input which genomes and MAGs should be used, as a table with two coloumns:
@@ -464,29 +464,56 @@ A anvio script can create the input information for us.
 cd /03_pangenome/
 anvi-script-gen-genomes-file --input-dir ../02_contigs-dbs/ -o external_genomes.txt
 ```
-Etsimate genome completeness
+**<u>Question 8**: <br> 
+Use the **head** or **cat** command to verify if it worked</u><br>
+```
+cat external_genomes.txt 
+
+name contigs_db_path 
+Methano_Bin1 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin1.db Methano_Bin10 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin10.db Methano_Bin13 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin13.db Methano_Bin3 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin3.db Methano_Bin5 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin5.db Methano_Bin8 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin8.db Methano_Bin9 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin9.db Methano_Mflavescens /work_beegfs/sunam236/Day6/02_contigs-dbs/Mflavescens.db
+```
+### 2.2.2 Etsimate genome completeness
+The genome completeness is estimated to recieve information about the quality of the MAGs. The most important factors to assess the quality are **redundancy** and **completeness**
 ```
 anvi-estimate-genome-completeness -e external_genomes.txt -o ./genome-completeness.txt
 ```
-remove all copletion < 75%, redundancy >10
-Just remove the contigs.db from the folder
+**<u>Question 9**: <br> 
+How do the bins compare to isolate genomes? Would you remove one, based on the output of the completeness estimation?</u><br>
+* The bins should show a lower completion rate and higher redundancy compared to isolated genomes, since the are unlikely to be as pure and continous.
+* All bins with a completion < 75% and redundancy >10 should be removed 
 --> Methano_Bin10 + 5
+### 2.2.3 Remove unwanted genomes
+The previously detected unwanted MAGs (completion <70% & redundancy >10%) can be directly removed from the folder. For this create a new folder in the 02_contig-dbs directory called "discarded" and move the unwanted MAGs into it.
 ```
 cd ../02_contigs-dbs/
 mkdir discarded
 mv Bin10.db Bin5.db  ./discarded/
 ```
-Create a new extenral-genomse output, for the updated bins
+Afterwards proceed with the "good" MAGs. <br> Create a new external-genomes output for the updated bins.
 ```
 cd ../03_pangenome/
 anvi-script-gen-genomes-file --input-dir ../02_contigs-dbs/ -o external_genomes_final.txt
 ```
+## 2.3 Create Pangenome database
+In Anvi'o two artifacts need to be created (similar to working with assemblies). 
 
-Create Pangenome database
-create script: script_pangenome.sh
+The first one is `genomes-storage.db`file, which merges all genomes into one database, making it easier to work with and publish. <br> The database contains:
+1. All genome fasta files
+2. The gene annotations (HMMs, SCGs) added before
+3. Any new annotations and genome comparisons made afterwards
+
+The second file is the `pan-genome.db` (similar to the profile generated to annotate the bins).  <br> The file contains:
+1. Genome similarities based on gene amino acid sequences
+2. Resolved gene cluster
+3. Any post-analysis of gene clusters, downstream analysis and visualisations.
+
+Both files are created within one script, with differt computing requirements from before. 
 ```
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=10
 #SBATCH --mem=500M
-#SBATCH --time=0:05:00
+#SBATCH --time=00:05:00
 #SBATCH --job-name=pangenome
 #SBATCH --output=pangenome.out
 #SBATCH --error=pangenome.out
@@ -496,7 +523,8 @@ create script: script_pangenome.sh
 #load and activate anvio environment
 module load miniconda3/4.7.12.1
 source activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
-# Command
+
+# Commands
 cd /work_beegfs/sunam236/Day6/03_pangenome/
 
 anvi-gen-genomes-storage -e external_genomes_final.txt -o genomes_storage-GENOMES.db
@@ -505,18 +533,17 @@ anvi-pan-genome -g genomes_storage-GENOMES.db --project-name pangenome --num-thr
 #this prints the required resources into your logfile
 jobinfo
 ```
-```
-sbatch script_pangenome.sh 
-```
+## 2.4 Compare the data phylogenetically (ANI)
+Afterwards the genome similarity is calculated, most commonly the ***A***verage ***N***ucleotide ***I***dentity (ANI) with `MUMmer` to align each genome. This can be used to measure how related the genomes are and if a new species was discovered. <br>
+Species boundary: 95-96% identity over a 90% genome coverage
 
-## 4. Compare the data phylogenetically (ANI)
-create script: script_panANI.sh
+Depending on the amount of genomes used, this can be very memory intensive, so more Memory needs to be assigned in the bashscript:
 ```
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=600M
-#SBATCH --time=0:02:00
+#SBATCH --time=00:02:00
 #SBATCH --job-name=pangenome
 #SBATCH --output=pangenome.out
 #SBATCH --error=pangenome.out
@@ -526,111 +553,98 @@ create script: script_panANI.sh
 #load and activate anvio environment
 module load miniconda3/4.7.12.1
 source activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
-# Command
+
+# Commands
 cd /work_beegfs/sunam236/Day6/03_pangenome/
 
 anvi-compute-genome-similarity --external-genomes external_genomes_final.txt --program pyANI --output-dir ./ANI --num-threads 10 --pan-db ./pangenome/Pangenome-PAN.db
+
 #this prints the required resources into your logfile
 jobinfo
 ```
-```
-sbatch script_panANI.sh 
-```
-## 5. Visualise the pangenome
+Once the genome similarities are calculated, the interactive interface can be calculated
+## 2.5 Visualize the pangenome
+Direct access to a HPC node and run anvi-display-pan:
 ```
 srun --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 --reservation=biol217 --partition=all /bin/bash
-```
-activate the conda environment
-```
+
 conda activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
-```
-```
+
 anvi-display-pan -p ./pangenome/Pangenome-PAN.db -g ./genomes_storage-GENOMES.db -P 8080
 ```
-## 6. Interprete and order the pangenome
+**<u>Question 10**: <br> 
+Scroll to the top of the help and find out which INPUT FILES you need. Write the command and use the additional flag -P. What is the -P flag for?</u><br>
+* Pangenome-PAN.db
+* genomes_storage-GENOMES.db
+* The -P flag declares the port number used (default 8080)
+## 2.6 Interprete and order the pangenome 
+Interprete and order the pangenome in the interactive interface. In this course it was done according to three tasks. 
 
-## 7. Blast Koala (Bonus)
--------------------------- questions:
+**Task 1: Genome similarity**
+1. Remove combined homogeneity, functional homogeneity, geometric homogeneity, max num parsimonay, number of genes in gene cluster and number of genomes gene cluster has hits from the active view (by setting Height to 0)
+2. Create a "Bin-highlight" including alls SCGs and name it accordingly.
+3. Cluster the genomes based on Frequency
 
+**<u>Question 11**: <br> 
+Based on the frequency clustering of genes, do you think all genomes are related? Why?</u><br>
+All of them are loosely related. All SCGs are clustered in the same region and they all should be Archea.
+But Bin9 seems to be closer related to *M. flavescens* than the other three bins. The other three are closer related to each other.
 
-## Nr.3.1 Pangenome
-```
-cat external_genomes.txt
-name	contigs_db_path
-Methano_Bin1	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin1.db
-Methano_Bin10	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin10.db
-Methano_Bin13	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin13.db
-Methano_Bin3	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin3.db
-Methano_Bin5	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin5.db
-Methano_Bin8	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin8.db
-Methano_Bin9	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin9.db
-Methano_Mflavescens	/work_beegfs/sunam236/Day6/02_contigs-dbs/Mflavescens.db
-```
+<u>How does the reference genome compare to its closest bin? </u> <br> 
+*Tip: Consider the genome depiction and layers above.* <br>
+They are pretty similar. Bin9 has most of the gene clusters of the reference genome.<br>
+When looking at some example genecluster alignments, Bin9 and the reference share most of the time the same sequence. Even in the SCG region
 
-## Nr. 3.2
-The command provides its output as a table to the standard output of the terminal. What can you add to the code to direct output to, e.g. a .txt file? <br>
-* 
+<u>What ranges are used determine a prokaryotic species? How high can you go until you see changes in ANI? What does the ANI clustering tell you about genome relatedness? </u> <br>
+* The cut off for Prokaryotic species is 95%. <br>
+So Bin9 and refence seem to be one species. The other four differ from the reference, but share a species with each other. <br>
+* Differences within the clustered bins appear at 99%. <br>
+* 99.5%: Bin1 not related to the other
+* 99.6%: Bin13 related to 3 and 8, Bin8 and 3 loosely related
+* 99.7%: Only relatedness between Bin9 and reference
+The ANI clustering gives information about the approximate relatedness (higher percentage=higher approximate relatedness). 95% cutoff for the same species in prokaryotes.
 
-## Nr. 5 
-*`Scroll to the top of the help and find out which INPUT FILES you need. Write the command and use the additional flag -P. What is the -P flag for?` <br>
-The -P flag declares the port number used (default 8080)
+**Task 2: Functional Profiling**
+1. Using the Search Function, highlight all genes in the KEGG Module for Methanogenesis
+2. Create a new bin called "Methanogenesis" and store your search results in this bin.
+3. Google COG Categories and select one you are interesed in. Create a new bin, find your Category in the Pangenome and add it to this selection.
 
-## Nr. 6
-
-* `Based on the frequency clustering of genes, do you think all genomes are related? Why?`
-  * loosely related yes, all SCGs are clustered in the same regon and they all should be Archea. 
-  * But Bin9 seems to be closer related to Mflavescens than the other three bins. The other three are closer to each other.
-
-
-* `How does the reference genome compare to its closest bin? Tip: Consider the genome depiction and layers above`
-  * pretty similar. Bin9 has most of the gene clusters of the reference genome
-  * When looking at some example genecluster alignments, Bin9 and the reference are much more similar, than the other three. Even in the SCG region
-  
-* `What ranges are used determine a prokaryotic species? How high can you go until you see changes in ANI? What does the ANI clustering tell you about genome relatedness?`
-  * prokaryotic species cut off 95%
-    * So Bin9 and refence seem to be one species. The other four differ from the reference, but share a species with each other
-  * Differences within the clustered bins appear at 99%
-    * 99.5%: Bin1 not related to the other
-    * 99.6% Bin13 related to 3 and 8, Bin8 and 3 loosely related
-    * 99.7% only relatedness between Bin9 and reference
-  * Higher percentage=higher approximate relatedness. 95% cutoff for the same species in prokaryotes. 
-
-* `How are Methanogenesis genes distributed across the genome?`
-  * distributed across the entire genome, not closely clusteres
-  * But only one methanogenesis gene in the region only available in the reference genome
-
-Final pangenom view
-
+**<u>Question 12**: <br> 
+How are Methanogenesis genes distributed across the genome?</u><br>
 ![image](images/Pangenome.svg)
+They are distributed across the entire genome, not closely clustered.
+But there is only one methanogenesis gene in the region only available in the reference genome.
 
--------------------------------
-*`What observations can you make regarding the geometric homogeneity between all genomes and the functional homogeneity?`
-* 20 Genes match. All of them are in the previously marked SCGs region
-* The functions should not be impaired, since SCGs are probably highly conserved, due to their very important and essential functionality
-* The aminoacid structe differs though, but probably not effecting the polarity, or structure in the protein
+**Task 3: Functional/geometric homogeneity and their uses**
+1. Using search parameters, find a gene which occurs:
+  * in all genomes
+  * a maximum of 1 times (Single copy gene)
+  * has a high variability in its functional homogeneity (max. 0.80) <br>
+  --> This gene will be highly conserved, but has diversified in the AA make up 
+2. Highlight the found genes on the interface. Inspect one of the gene-clusters more closely (Inspect gene-cluster).
+
+**<u>Question 13**: <br> 
+What observations can you make regarding the geometric homogeneity between all genomes and the functional homogeneity?</u><br>
+* 20 Genes match the search parameters. All of them are in the previously marked SCGs regions.
+* The functions should not be impaired, since SCGs are highly conserved, due to their very important and essential functionality
+* The aminoacid structe differs though, but probably not effecting the polarity or structure in the protein
   * M.flavescens and Bin 9 differ from the other four. They share the same SNPs, deletions, or insetions compared to the other four bins
 ## 2.7 BlastKOALA (Bonus)
 Besides Anvi'o there are a lot of tools available for metabolism investigations. BlastKOALA is one of them, which creates a metabolic profile of the genome based on KEGG database. 
-  
-![image](images/SCG_day06.png)
 
-------------------------------------
--------------------------------------
-------------------------------------
-# Blastkoala
-*`Can the organism do methanogenesis? Does it have genes similar to a bacterial secretion system?`
-  * Yes it can do methanogenesis  
-    * CO2, Acetate and Methanol
-  * Yes it contains genes also used in bacterial secretion systme (7)
+In this course BlastKOALA Results for this Methanogen were prepared for us, so we could reconstruct the pathway.
+
+**<u>Question 14**: <br> 
+Can the organism do methanogenesis? Does it have genes similar to a bacterial secretion system?</u><br>
+* Yes it can do methanogenesis  
+  * Through CO2, Acetate and Methanol
+* Yes it contains 7 genes also used in bacterial secretion systme
 
 ![image](images/Secretion.png)
 
-# DAY7
-At home need to install everything from 
-```
-conda list
-```
-----------------------
+
+# 3. RNA-Seq analysis DAY7!!!!!!!!!!!!!!!!!!!
+
 ```
 conda activate /home/sunam226/.conda/envs/reademption
 
