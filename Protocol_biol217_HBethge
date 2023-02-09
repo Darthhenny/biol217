@@ -1,4 +1,5 @@
-# Protocol_bio217_Hendrik Bethge 
+Protocol_bio217_Hendrik Bethge 
+# MAGs
 ## 1.Metagenome assembled Genomes (MAGs)
 The goal of this project was to learn how to handle and interprete metagenomic data from the raw read to the assembled MAGs. 
 
@@ -23,6 +24,22 @@ In this protocoll three exemplanary samples were analysed.
 ```
 sbatch <script.sh>
 ```
+A script should contain the following information:
+1. The shebang
+2. Processing requirements as #SBATCH commands
+    * Reservation
+    * Nodes to use
+    * CPUs (for multithreading)
+    * memory requirements
+    * time
+    * working directory
+    * log files
+    * partitions
+3. Stdinand Stderr paths
+4. Slurm modules needed for the task
+5. The command
+6. jobinfo
+
 Example bash script:
 ```
 #!/bin/bash
@@ -382,5 +399,465 @@ anvi-summarize -c ./contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db 
 ```
 Rename bins_summary.txt to .tsv and open with libre office
 
+# Pangenomics - comparing genomes
+## Evaluation of the starting databases (Directory: 02_contigs-dbs)
+For the pangenomics a new set of contigs.dbs were used. They containg already prepared MAGs from the Biogasreactor and a complete Methanogen genome. 
 
-DAY6!!!!!!!!!!!!!
+Files were created for us in Day6: 
+* 02_contigs-dbs (enthält contigs)
+* 03_pangenome
+
+To compare the bins a summary overview was vizualized.<br>
+Get direct access to a HPC compute node
+```
+srun --reservation=biol217 --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 /bin/bash
+```
+Note the accessed node and start anvi'o interactive display
+```
+cd /02_contigs-dbs/
+anvi-display-contigs-stats *db
+```
+Open a new terminal, not logged into CAUcluster
+```
+ssh -L 8060:localhost:8080 sunam236@caucluster-old.rz.uni-kiel.de
+ssh -L 8080:localhost:8080 node010
+```
+Open in a Browser: http://127.0.0.1:8060/
+
+**<u>Question 7**: <br> 
+* How do the MAGs compare in size and number of contigs to the full genome?</u><br>
+![image](images/Contigs.png)
+  * The bins are all smaller than the full Methano_mflavenscens genome. They differ from 1.3 mbp to 2.6 mb 
+  * The contig number is much higher, since the full genome only cosists of 1 contig. Most of the contigs are > 2.5 kb 
+  * The longest contigs vary between 14 kb and 65 kb (compared to 3.2 mb of the full genome) 
+  * HMM (single copy core genes) differ from 43 to 80. the complete genome contains 72
+* <u> Based on the contigs number, size and number of marker genes (HMM hits), which two MAGs are the best and which is the worst? </u> <br>
+The worst MAGs are: <br>
+* 10 
+    * Contains a lot of Contigs smaller than 2.5 kb
+    * The least HMM archea hits 
+    * Shortest total length
+* 5 
+      * No approx. genome found 
+      * To few HMM hits 
+      * Alot of contigs below 2.5 kb
+ The best MAGs are: <br>
+* 13 
+      * Most contigs above 20kb
+      * Most archea HMM hits
+* 9 
+      * Most contigs above 10 kb
+      * Longest total length
+      * Contains no approx. bacterial genome
+## 3.Create pangenome (Directory: 03_pangenome)
+A Pangenome visualizes entire genomes for comparison. Comparison is based on essential and accessory gene clusters, phylogenetic relationships and genome qualities.
+### Create a external genome file
+First a "external genome file" needs to be created to input which genomes and MAGs should be used
+```
+cd /03_pangenome/
+anvi-script-gen-genomes-file --input-dir ../02_contigs-dbs/ -o external_genomes.txt
+```
+Etsimate genome completeness
+```
+anvi-estimate-genome-completeness -e external_genomes.txt -o ./genome-completeness.txt
+```
+remove all copletion < 75%, redundancy >10
+Just remove the contigs.db from the folder
+--> Methano_Bin10 + 5
+```
+cd ../02_contigs-dbs/
+mkdir discarded
+mv Bin10.db Bin5.db  ./discarded/
+```
+Create a new extenral-genomse output, for the updated bins
+```
+cd ../03_pangenome/
+anvi-script-gen-genomes-file --input-dir ../02_contigs-dbs/ -o external_genomes_final.txt
+```
+
+Create Pangenome database
+create script: script_pangenome.sh
+```
+#SBATCH --mem=500M
+#SBATCH --time=0:05:00
+#SBATCH --job-name=pangenome
+#SBATCH --output=pangenome.out
+#SBATCH --error=pangenome.out
+#SBATCH --partition=all
+#SBATCH --reservation=biol217
+
+#load and activate anvio environment
+module load miniconda3/4.7.12.1
+source activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
+# Command
+cd /work_beegfs/sunam236/Day6/03_pangenome/
+
+anvi-gen-genomes-storage -e external_genomes_final.txt -o genomes_storage-GENOMES.db
+
+anvi-pan-genome -g genomes_storage-GENOMES.db --project-name pangenome --num-threads 10
+#this prints the required resources into your logfile
+jobinfo
+```
+```
+sbatch script_pangenome.sh 
+```
+
+## 4. Compare the data phylogenetically (ANI)
+create script: script_panANI.sh
+```
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=600M
+#SBATCH --time=0:02:00
+#SBATCH --job-name=pangenome
+#SBATCH --output=pangenome.out
+#SBATCH --error=pangenome.out
+#SBATCH --partition=all
+#SBATCH --reservation=biol217
+
+#load and activate anvio environment
+module load miniconda3/4.7.12.1
+source activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
+# Command
+cd /work_beegfs/sunam236/Day6/03_pangenome/
+
+anvi-compute-genome-similarity --external-genomes external_genomes_final.txt --program pyANI --output-dir ./ANI --num-threads 10 --pan-db ./pangenome/Pangenome-PAN.db
+#this prints the required resources into your logfile
+jobinfo
+```
+```
+sbatch script_panANI.sh 
+```
+## 5. Visualise the pangenome
+```
+srun --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 --reservation=biol217 --partition=all /bin/bash
+```
+activate the conda environment
+```
+conda activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
+```
+```
+anvi-display-pan -p ./pangenome/Pangenome-PAN.db -g ./genomes_storage-GENOMES.db -P 8080
+```
+## 6. Interprete and order the pangenome
+
+## 7. Blast Koala (Bonus)
+-------------------------- questions:
+
+
+## Nr.3.1 Pangenome
+```
+cat external_genomes.txt
+name	contigs_db_path
+Methano_Bin1	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin1.db
+Methano_Bin10	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin10.db
+Methano_Bin13	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin13.db
+Methano_Bin3	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin3.db
+Methano_Bin5	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin5.db
+Methano_Bin8	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin8.db
+Methano_Bin9	/work_beegfs/sunam236/Day6/02_contigs-dbs/Bin9.db
+Methano_Mflavescens	/work_beegfs/sunam236/Day6/02_contigs-dbs/Mflavescens.db
+```
+
+## Nr. 3.2
+The command provides its output as a table to the standard output of the terminal. What can you add to the code to direct output to, e.g. a .txt file? <br>
+* 
+
+## Nr. 5 
+*`Scroll to the top of the help and find out which INPUT FILES you need. Write the command and use the additional flag -P. What is the -P flag for?` <br>
+The -P flag declares the port number used (default 8080)
+
+## Nr. 6
+
+* `Based on the frequency clustering of genes, do you think all genomes are related? Why?`
+  * loosely related yes, all SCGs are clustered in the same regon and they all should be Archea. 
+  * But Bin9 seems to be closer related to Mflavescens than the other three bins. The other three are closer to each other.
+
+
+* `How does the reference genome compare to its closest bin? Tip: Consider the genome depiction and layers above`
+  * pretty similar. Bin9 has most of the gene clusters of the reference genome
+  * When looking at some example genecluster alignments, Bin9 and the reference are much more similar, than the other three. Even in the SCG region
+  
+* `What ranges are used determine a prokaryotic species? How high can you go until you see changes in ANI? What does the ANI clustering tell you about genome relatedness?`
+  * prokaryotic species cut off 95%
+    * So Bin9 and refence seem to be one species. The other four differ from the reference, but share a species with each other
+  * Differences within the clustered bins appear at 99%
+    * 99.5%: Bin1 not related to the other
+    * 99.6% Bin13 related to 3 and 8, Bin8 and 3 loosely related
+    * 99.7% only relatedness between Bin9 and reference
+  * Higher percentage=higher approximate relatedness. 95% cutoff for the same species in prokaryotes. 
+
+* `How are Methanogenesis genes distributed across the genome?`
+  * distributed across the entire genome, not closely clusteres
+  * But only one methanogenesis gene in the region only available in the reference genome
+
+Final pangenom view
+
+![image](images/Pangenome.svg)
+
+-------------------------------
+*`What observations can you make regarding the geometric homogeneity between all genomes and the functional homogeneity?`
+* 20 Genes match. All of them are in the previously marked SCGs region
+* The functions should not be impaired, since SCGs are probably highly conserved, due to their very important and essential functionality
+* The aminoacid structe differs though, but probably not effecting the polarity, or structure in the protein
+  * M.flavescens and Bin 9 differ from the other four. They share the same SNPs, deletions, or insetions compared to the other four bins
+  
+![image](images/SCG_day06.png)
+
+------------------------------------
+-------------------------------------
+------------------------------------
+# Blastkoala
+*`Can the organism do methanogenesis? Does it have genes similar to a bacterial secretion system?`
+  * Yes it can do methanogenesis  
+    * CO2, Acetate and Methanol
+  * Yes it contains genes also used in bacterial secretion systme (7)
+
+![image](images/Secretion.png)
+
+# DAY7
+At home need to install everything from 
+```
+conda list
+```
+----------------------
+```
+conda activate /home/sunam226/.conda/envs/reademption
+
+reademption create --project_path READemption_analysis --species salmonella="Salmonella Typhimurium"
+```
+For us its methanosarcenia mazei
+
+Grab data from web: put it in FTP_Source variable
+```
+FTP_SOURCE=ftp://ftp.ncbi.nih.gov/genomes/archive/old_refseq/Bacteria/Salmonella_enterica_serovar_Typhimurium_SL1344_uid86645/
+```
+```
+wget -O READemption_analysis/input/salmonella_reference_sequences/NC_016810.fa $FTP_SOURCE/NC_016810.fna
+wget -O READemption_analysis/input/salmonella_reference_sequences/NC_017718.fa $FTP_SOURCE/NC_017718.fna
+wget -O READemption_analysis/input/salmonella_reference_sequences/NC_017719.fa $FTP_SOURCE/NC_017719.fna
+wget -O READemption_analysis/input/salmonella_reference_sequences/NC_017720.fa $FTP_SOURCE/NC_017720.fna
+```
+remove everything infront of the NZ-number in sublime text editor, than safe `or replace header with` <br> (annotation file + reference file need to look the same)
+```
+sed -i "s/>/>NC_016810.1 /" READemption_analysis/input/salmonella_reference_sequences/NC_016810.fa
+sed -i "s/>/>NC_017718.1 /" READemption_analysis/input/salmonella_reference_sequences/NC_017718.fa
+sed -i "s/>/>NC_017719.1 /" READemption_analysis/input/salmonella_reference_sequences/NC_017719.fa
+sed -i "s/>/>NC_017720.1 /" READemption_analysis/input/salmonella_reference_sequences/NC_017720.fa
+```
+
+Download annotation file
+```
+wget -P READemption_analysis/input/salmonella_annotations https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/210/855/GCF_000210855.2_ASM21085v2/GCF_000210855.2_ASM21085v2_genomic.gff.gz
+```
+
+Download the raw reads: <br>
+```
+wget -P READemption_analysis/input/reads http://reademptiondata.imib-zinf.net/InSPI2_R1.fa.bz2
+wget -P READemption_analysis/input/reads http://reademptiondata.imib-zinf.net/InSPI2_R2.fa.bz2
+wget -P READemption_analysis/input/reads http://reademptiondata.imib-zinf.net/LSP_R1.fa.bz2
+wget -P READemption_analysis/input/reads http://reademptiondata.imib-zinf.net/LSP_R2.fa.bz2
+```
+--------------------------------------------------
+# Run the pipeline
+
+create script: script_reademption.sh
+```
+#!/bin/bash
+#SBATCH --job-name=reademption
+#SBATCH --output=reademption.out
+#SBATCH --error=reademption.err
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --qos=long
+#SBATCH --time=0-50:00:00
+#SBATCH --partition=all
+#SBATCH --export=NONE
+#SBATCH --reservation=biol217
+
+source ~/.bashrc
+
+#activating conda
+module load miniconda3/4.7.12.1
+conda activate /home/sunam226/.conda/envs/reademption
+reademption align -p 4 --poly_a_clipping --project_path READemption_analysis
+reademption coverage -p 4 --project_path READemption_analysis
+reademption gene_quanti -p 4 --features CDS,tRNA,rRNA --project_path READemption_analysis
+reademption deseq -l InSPI2_R1.fa.bz2,InSPI2_R2.fa.bz2,LSP_R1.fa.bz2,LSP_R2.fa.bz2 -c InSPI2,InSPI2,LSP,LSP -r 1,2,1,2 --libs_by_species salmonella=InSPI2_R1,InSPI2_R2,LSP_R1,LSP_R2 --project_path READemption_analysis
+reademption viz_align --project_path READemption_analysis
+reademption viz_gene_quanti --project_path READemption_analysis
+reademption viz_deseq --project_path READemption_analysis
+conda deactivate
+jobinfo
+```
+```
+sbatch script_reademption.sh
+```
+------------------------Questions:
+# 7.1 Find the SRR number:
+* Search in the paper for SRR, NCBI, or Accession
+* Click the link
+* Look for a SRA or project numer
+*  Click on each samples and look for SRR-Number <br>
+--> SRR, Nr. of spots, Nr. of bases, site, publication date stated
+
+# DAY8
+# Day8
+
+## repeat the READemption pipeline from day7
+```
+cd /work_beegfs/sunam236/day8
+
+mkdir project_RNA_analysis_2
+
+conda activate /home/sunam226/.conda/envs/reademption
+```
+copy input reads from yetserday
+```
+cp ../../day7/project_RNA_analysis/READemption_analysis/input/reads/* ./READemption_analysis/input/reads/
+```
+Download Reference and annotations
+```
+wget -O READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fna.gz https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/007/065/GCF_000007065.1_ASM706v1/GCF_000007065.1_ASM706v1_genomic.fna.gz
+gunzip READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fna.gz
+mv READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fna READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fa
+#download annotations
+wget -P READemption_analysis/input/Methanosarcina_annotations https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/007/065/GCF_000007065.1_ASM706v1/GCF_000007065.1_ASM706v1_genomic.gff.gz
+gunzip READemption_analysis/input/Methanosarcina_annotations/GCF_000007065.1_ASM706v1_genomic.gff.gz
+```
+modify header of the sequence file
+```
+sed -i "s/>/>NC_003901.1 /" READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fa
+```
+create script: script_reademption.sh
+```
+#!/bin/bash
+#SBATCH --job-name=pub_data
+#SBATCH --output=pub_data.out
+#SBATCH --error=pub_data.err
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
+#SBATCH	--qos=long
+#SBATCH --time=0-05:00:00
+#SBATCH --partition=all
+#SBATCH --reservation=biol217
+
+source ~/.bashrc
+
+module load miniconda3/4.7.12.1
+module load python/3.7.4
+conda activate /home/sunam226/.conda/envs/reademption
+################################### ---CALCULATIONS---
+#aligning:
+reademption align --fastq -f READemption_analysis --poly_a_clipping --min_read_length 12 --segemehl_accuracy 95  
+
+# coverage:
+reademption coverage -p 4 --project_path READemption_analysis 
+
+#gene wise quanty:
+reademption gene_quanti -p 4 --features CDS,tRNA,rRNA --project_path READemption_analysis 
+
+#differential gene expression:
+reademption deseq -l sRNA_R1.fa,sRNA_R2.fa,wt_R1.fa,wt_R2.fa -c sRNA,sRNA,wt,wt \
+	-r 1,2,1,2 --libs_by_species Methanosarcina=sRNA_R1,sRNA_R2,wt_R1,wt_R2 --project_path READemption_analysis
+
+############################## ---PLOTS---
+reademption viz_align --project_path READemption_analysis
+reademption viz_gene_quanti --project_path READemption_analysis
+reademption viz_deseq --project_path READemption_analysis
+conda deactivate
+jobinfo
+```
+```
+sbatch script_reademption.sh
+```
+
+
+cp /home/sunam226/Day7/example_rna_seq/READemption_analysis/output/* cp /work_beegfs/sunam236/day8/output_sunam226/
+-----------------------------questions
+Transfer iris from long to wie format
+Upload 5 different graphs of trees
+
+trees<- data.frame(trees)
+View(trees)
+ggplot(data=trees, mapping=aes(Height, Volume)) + geom_boxplot()
+ggplot(data=trees, mapping=aes(Height, Volume)) + geom_jitter() 
+ggplot(data=trees, mapping=aes(Height, Volume, size=Girth, colour=Girth)) + geom_point()
+ggplot(data=trees, mapping=aes(Girth, as.factor(Volume))) + geom_dotplot()
+ggplot(data=trees, aes(x = Girth, y = Volume, color = Height)) + geom_line() + guides(color = guide_legend(title = "Height"))
+ggplot(data=trees, mapping=aes(Girth, Volume, fill=Height)) + geom_area()
+ggplot(data=trees, mapping=aes(Girth, Volume, colour=Height)) + geom_curve(xend=22, yend=80)
+
+plot_ly(data=trees,aes(x=Girth,y=Volume,z=Height, type="scatter3d",  mode="markers", color=Height)) +  geom_point() #braucht plotly
+
++ facet_wrap()
+# Day9 
+# Day9
+library(readxl)
+df <- read_excel("R_heatmap_log2FC.xls", 
+                               sheet = "Sheet1")
+
+
+ggplot(df, aes(seq_type,name, fill=log2fold_change))+geom_tile() +
+  scale_fill_gradient(low='#de3163', high='black') +
+  theme_linedraw() + 
+  labs( x = "Sequence type", y = "Gennames") +
+  guides(fill=guide_legend(title="Log to fold change")) +
+  ggtitle("Novel gene names") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+df_identifier<-read_excel("R_heatmap_identifier.xls", 
+           sheet = "Sheet1")
+df_identifier2<-tidyr::gather(iris, key='Identifier', value='log2FC')
+
+iris_long<-tidyr::gather(df_identifier, key='Species', value='log2FC')
+
+ggplot(df_identifier, aes(method,Identifier, fill=log2FC))+geom_tile() +
+  scale_fill_gradient(low='blue', high='white',) +
+  theme_linedraw() + 
+  labs( x = "mRNA", y = "Identifier") +
+  guides(fill=guide_legend(title="Log2FC")) +
+  ggtitle("Novel genes identifier") +
+  theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )
+---------------------questions
+# csrA gene Infos
+![image](images/scrA.png)
+
+* Start codon
+  * ATG (reverse complemantary TAC)
+* Stop codon
+  * TAA (reverse complementary ATT)
+* Aminoacid length
+  * start 2991371-2991185=186 bp
+  * 186 bp/3=62 AS
+  * 61 Aminoacids (stop is not a AA)
+  * mall protein because <70 AS
+* its SD (consensus at -7 or -4)
+  * Shine dalgano
+* The name of the upstream gene
+  * upstream alaS
+* Is csrA translated?
+  * Yes, Ribosome coverage along the entwire genes
+  * UTRs clearly visible next to it
+
+# Find a significantly differential expressed gene (wt/scrA Mutant)
+* Look at p-value <0.05 in table
+![image](images/ribB.png)
+
+# create heatmaps from RNA+Ribo analysis
+![image](images/heatmap_names.png)
+```
+ggplot(df, aes(seq_type,name, fill=log2fold_change))+geom_tile() +
+  scale_fill_gradient(low='#de3163', high='black') +
+  theme_linedraw() + 
+  labs( x = "Sequence type", y = "Gennames") +
+  guides(fill=guide_legend(title="Log to fold change")) +
+  ggtitle("Novel gene names") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
