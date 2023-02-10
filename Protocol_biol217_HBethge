@@ -1,21 +1,21 @@
 Protocol_bio217_Hendrik Bethge 
-# 1. MAGs
-## 1.1 Metagenome assembled Genomes (MAGs)
+# 1. Metagenome assembled Genomes (MAGs)
+## 1.1 Background information
 The goal of this project was to learn how to handle and interprete metagenomic data from the raw read to the assembled MAGs. 
 
 This process consists of five steps:
  1. Pre-processing of the raw reads 
- 2. Assembled reads into contigs/fasta
- 3. Asses quality of assemblies
- 4. Bin contigs into MAGs
- 5. Asses completeness, contamination and strain heterogeniety of the MAGs
+ 2. Assembling the reads into contigs/fasta
+ 3. Assessing the quality of assemblies
+ 4. Binning the contigs into MAGs
+ 5. Assessing completeness, contamination and strain heterogeniety of the MAGs
 
 ### Dataset 
-The samples were taken from a biogas plant near Cologne over the course of 587 days. Each month samples were taken and analysed  based on 16S amplicon sequences by Martin Fisher (https://sfamjournals.onlinelibrary.wiley.com/doi/full/10.1111/1751-7915.13313). In addition to the amolicon sequencing, the samples were also sequenced for metagenomics. \
-In this protocoll three exemplanary samples were analysed.
+The samples were taken from a biogas plant near Cologne over the course of 587 days. <br> Samples were taken once a month and analysed  based on 16S amplicon sequences by Martin Fisher (https://sfamjournals.onlinelibrary.wiley.com/doi/full/10.1111/1751-7915.13313). <br> In addition to the amplicon sequencing, the samples were also sequenced for metagenomics. \
+In this protocoll three exemplanary samples from this dataset were analysed.
 
 ### HPC system
- All steps were run on the HPC-server of the CAU (CAU-cluster) via Bash scripts. \
+ All steps were run on the HPC-server of the CAU (CAU-cluster) via **Bash scripts** unless specified otherwise. <br>
  To access the HPC-server:
  ```
  ssh -X sunam???@caucluster.rz.uni-kiel.de
@@ -62,7 +62,7 @@ example.command
 jobinfo
 ```
 For the course we were able to access the HPC with special persissions through the reservation command.\
-Unless specified otherwise the commands were run in a miniconda environment.
+Unless specified otherwise all commands were run in a **miniconda environment**.
 
  ### Tools used:
  | Tool | Version | Repository |
@@ -81,15 +81,14 @@ Unless specified otherwise the commands were run in a miniconda environment.
 
 -----------------------------
 ## 1.2 Pre-processing of the raw reads
-The raw read were copied ito my working directory
+The raw read were copied into the working directory
 ```
 mkdir /work_beegfs/sunam236/day2
 
 cp /home/sunam226/Day2/0_raw_reads/*.fastq.gz /work_beegfs/sunam236/day2
 cd ./day2
-ls
 ```
-Quality of the reads was analysed with `FastQC` based on the phred quality score. 
+The quality of the reads was analysed with `FastQC`, based on the phred quality score. 
 ```
 for i in *.gz; do fastqc $i -o output_folder/; done
 ```
@@ -103,38 +102,38 @@ do
 done
 ```
 --------------------------------------
-## 1.3 Assembled reads into contigs/fasta
-The processed data was assembled using `Megahit`.
+## 1.3 Assembling the reads into contigs/fasta
+The processed data were assembled using `Megahit`.
 ```
 cd /work_beegfs/sunam236/day2/clean_reads
 
 megahit -1 BGR_130305_R1.fastq.gz -1 BGR_130527_R1.fastq.gz -1 BGR_130708_R1.fastq.gz -2 BGR_130305_R2.fastq.gz -2 BGR_130527_R1.fastq.gz -2 BGR_130708_R2.fastq.gz --min-contig-len 1000 --presets meta-large -m 0.85 -o ../megahit -t 20   
 ```
-The contigs were transformde into FASTG files to visualized in `Bandage`. 
+The contigs were transformed into FASTG files to visualized in `Bandage`. 
 ```
 cd /day3/3_coassembly/
 
 megahit_toolkit contig2fastg 99 final.contigs.fa > final.contigs.fastg       
 ```          
-Open Bandage and Load the file
+Opened Bandage and loaded the .fastg file
 
 **<u>Question 1**: <br> 
 Submit your generated figure and explain shortly what you can see </u>
 ![image](./images/Bandage_day3.png)
 The picture shows the de novo created contigs from the processed reads
 * The length of each line represents the length of the contig sequence
-* Loops represent k-mers with multiple cintinuing options
-* The colour is selected based on assumed MAG assignment
+* Loops represent k-mers with multiple continue options
+* The colour is selected based on assumed MAG assignment (bins)
 * The smaller fragments are reads, that were not able to be assigned to any of the longer contigs 
 -------------------------------
-## 1.4 Asses quality of assemblies
-The quality assesment of the megahit results is performed with `Quast`. The output is given as PDF and html.
+## 1.4 Assessing the quality of assemblies
+The quality assessment of the megahit results was performed with `Quast`. The output is given as PDF and html.
 ```
 cd /work_beegfs/sunam236/3_coassembly/
 
 metaquast -t 6 -o ../3_metaquast/ -m 1000 final.contigs.fa
 ```
-*This step did not work due to a conda permission error, so the outpout was copied from a backup*
+*This step did not work due to a permission error, so the outpout was copied from a backup*
 
 **<u>Question 2**: <br> 
 What is your N50 value?</u>
@@ -147,13 +146,13 @@ What is your N50 value?</u>
 * 145675865 Bp = 145,7 Mbp
 
 ----------------------------------
-## 1.5 Bin contigs into MAGs
+## 1.5 Binning contigs into MAGs
 Binning of the contigs: <br>
-To make the next steps easier the contig names were shortened *This step was performed directly in the console, without a bash script*
+To make the next steps easier the contig names were shortened. *This step was performed directly in the console, without a bash script*
 ```
 anvi-script-reformat-fasta final.contigs.fa -o /work_beegfs/sunam236/day3/contigs.anvio.fa --min-len 1000 --simplify-names--report-file name_conversion.txt
 ```
-Afterwards the bins are mapped in a loop, so every final.contigs.fasta recieves a corresponding mapping file. 
+Afterwards the bins were mapped in a loop, so every final.contigs.fasta recieved a corresponding mapping file. 
 ```
 module load bowtie2
 cd ./2_fastp/
@@ -172,26 +171,26 @@ cd ./4_mapping/
 
 for i in *.sam; do samtools view -bS $i > "$i".bam; done
 ```
-#### Anvi'o
-From here on `anvio` commands are used. <br> The **An**anlysis and **Vi**sualization plattform for microbial **'O**mics combines many of the computational strategies of data-enabled microbiology.
+### 1.5.1 Anvi'o
+From here on `anvi'o` commands were used. <br> The **An**anlysis and **Vi**sualization plattform for microbial **'O**mics combines many of the computational strategies of data-enabled microbiology.
 
-A contigs.db file was created, which contains key information associated with the sequences. <br> This command computes k-mer frequencies for each contig, soft-split contigs > 20000 bp into smaller ones and identif open reading frames using Prodigal.
+A contigs.db file was created, which contains key information associated with the sequences. <br> This command computes k-mer frequencies for each contig, soft-split contigs larger than 20000 bp into smaller ones and identifies open reading frames using Prodigal.
 
 ```
 cd /work_beegfs/sunam236/day3/
 
 anvi-gen-contigs-database -f ./4_mapping/contigs.anvio.fa -o ./5_anvio_profiles/contigs.db -n 'biol217'
 ```
-Afterwards a Hidden Markov Models (HMM) was run on the contigs, searching for specific single copy core genes with known functions. 
+Afterwards a Hidden Markov Models (HMM) was run on the contigs, searching for specific single copy core genes (SCGs) with known functions. 
 ``` 
 anvi-run-hmms -c ./5_anvio_profiles/contigs.db 
 ```
 
-Visualizing the result with anvi'o interactive (directly in the console):
+The result was visualized with anvi'o interactive (directly in the console):
 ```
 srun --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 --partition=all /bin/bash
 ```
-Note the accessed node
+Note the accessed node!
 ```
 conda activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
 
@@ -204,14 +203,14 @@ ssh -L 8060:localhost:8080 sunam236caucluster-old.rz.uni-kiel.de
 ssh -L 8080:localhost:8080 node???
 ```
 Open http://127.0.0.1:8060/ in your browser
-#### Binning with Anvio
-Sort and index the .bam files with `samtools` in anvi'o.
+### 1.5.2 Binning with Anvio
+Sorted and indexed the .bam files with `samtools` in anvi'o.
 ```
 cd ./4_mapping/
 
 for i in *.bam; do anvi-init-bam $i -o ../5_anvio_profiles/"$i".sorted.bam; done
 ```
-Create an anvio profile to store sample-specific information about the contigs in a single profile. <br> It processes only contigs >2500 nt.<br>
+An anvio profile was created to store sample-specific information about the contigs in a single profile. <br> It processed only contigs >2500 nt.<br>
 Processing includes:
 * Recovery of mean coverage, SD of coverage and average coverage for the inner quartiles.
 * Characterization of single nucleotide variants (SNVs)
@@ -228,21 +227,21 @@ cd ./6_profiling/
 
 anvi-merge ./BGR_130305_mapped_R1/PROFILE.db ./BGR_130527_mapped_R1/PROFILE.db ./BGR_130708_mapped_R1/PROFILE.db -o ./ -c ../5_anvio_profiles/contigs.db --enforce-hierarchical-clustering
 ```
-In this course two different Binners were used: `Metabat2` and `Concoct`. The result of both Binners were consolidated using `DASTool`. *The binning steps did not work, so the files were copied from a back up*
+In this course two different Binners were used: `Metabat2` and `Concoct`. The result of both Binners were consolidated using `DASTool`. *The binning steps did not work, so the files were copied from a back up!*
 
-###### Binning with Metabat2
+#### **Binning with Metabat2**
 ```
 cd ./6_profiling/
 
 anvi-merge ./BGR_130305_mapped_R1/PROFILE.db ./BGR_130527_mapped_R1/PROFILE.db ./BGR_130708_mapped_R1/PROFILE.db -o ./ -c ../5_anvio_profiles/contigs.db --enforce-hierarchical-clustering
 ```
-###### Binning with CONCOCT
+#### **Binning with CONCOCT**
 ```
 anvi-cluster-contigs -p /PATH/TO/merged_profiles/PROFILE.db -c /PATH/TO/contigs.db -C consolidated_bins --driver dastool -T 20 --search-engine diamond -S METABAT,CONCOCT --log-file log_consolidation_of_bins --just-do-it
 
 anvi-summarize -p /PATH/TO/merged_profiles/PROFILE.db -c /PATH/TO/contigs.db -o /PATH/TO/SUMMARY_consolidated_bins -C consolidated_bins
 ```
-###### Consolidating bins with DASTool
+#### **Consolidating bins with DASTool**
 ```
 anvi-cluster-contigs -p /PATH/TO/merged_profiles/PROFILE.db -c /PATH/TO/contigs.db -C consolidated_bins --driver dastool -T 20 --search-engine diamond -S METABAT,CONCOCT --log-file log_consolidation_of_bins --just-do-it
 
@@ -257,16 +256,16 @@ anvi-summarize -p /PATH/TO/merged_profiles/PROFILE.db -c /PATH/TO/contigs.db -o 
   2
 * <u>Numer of Archaea bins from consolidating:</u><br>
   2
-### MAGs quality estimation
-See the amount of bins
+### 1.5.3 MAGs quality estimation
+To see the amount of bins
 ```
 anvi-estimate-genome-completeness -p PROFILE.db -c contigs.db --list-collection
 ```
-Visualize it through anvi-interactive (directly in the console)
+Visualized it through anvi-interactive (directly in the console).
 ```
 srun --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 --partition=all /bin/bash
 ```
-Note the accessed node
+Note the accessed node!
 ```
 conda activate /home/sunam225/miniconda3/miniconda4.9.2/usr/etc/profile.d/conda.sh/envs/anvio-7.1
 
@@ -283,11 +282,11 @@ Open in a Browser: http://127.0.0.1:8060/
 
 **<u>Question 4**: <br> 
 * Which binning strategy gives the best quality archea bins:</u><br>
-  dastool (consolidated) gives the best quality, which was expected since it it not a binner itself and just merges the results of the two binners. MEtabat2 seems to be better than CONCOCT for our data.
+  dastool (consolidated) gives the best quality, which was expected since it it not a binner itself and just merges the results of the two binners. Metabat2 seems to be better than CONCOCT for our data.
 * <u>How many archaea bins do you get of high quality</u><br>
   2
 
-Check the binning quality for all three. Result is saved in working directory
+The binning quality for all three was checked. Result was saved in working directory
 ```
 anvi-estimate-genome-completeness -c ./contigs.db -p ./PROFILE.db -C consolidated_bins > genome_completeness_dastool
 
@@ -296,13 +295,13 @@ anvi-estimate-genome-completeness -c ./contigs.db -p ./PROFILE.db -C METABAT > g
 anvi-estimate-genome-completeness -c ./contigs.db -p ./PROFILE.db -C CONCOCT > genome_completeness_concoct
 ```
 
-### Bin refinement
-From this point only the archea bins are used. <br>
-Create a summary folder with *anvi-summarize* containing a comprehensive overview of the collection and statistics created by anvio.
+### 1.5.4 Bin refinement
+From this point only the archea bins were used. <br>
+A summary folder was created with *anvi-summarize* containing a comprehensive overview of the collection and statistics created by anvio.
 ```
 anvi-summarize -c ./contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db -C consolidated_bins -o ./5_anvio_profiles/summary --just-do-it
 ```
-Copy the archea bins to a seperate folder
+The archea bins were copied to a seperate folder
 ```
 cd ./5_anvio_profiles/summary/bin_by_bin
 
@@ -314,8 +313,7 @@ cp ./Bin_METABAT__25/*.fa ../../archea_bin_refinement/
 ```
 ---------------------------------
 ## 1.6 Asses completeness, contamination and strain heterogeniety of the MAGs
-
-### Chimera detection
+### 1.6.1 Chimera detection
 **G**genome **UNC**cluttered (`GUNC`) was used to detect chimeric MAGs.
 
 ```
@@ -330,24 +328,26 @@ for i in *.fa; do gunc run -i "$i" -r /home/sunam226/Databases/
 
 gunc_db_progenomes2.1.dmnd --out_dir GUNC --threads 10 --detailed_output; done
 ```
-look at the output file (.tsv) to see if a MAG is chimeric or not (clade seperation score)
-
+To see if a MAG is chimeric or not (clade seperation score) the output file (.tsv) was opened.
 
 **<u>Question 5**: <br> 
-* Do you get Archea bins that are chimeric:</u><br>
+Do you get Archea bins that are chimeric:</u><br>
   *clade seperation index close to one = chimeric* <br>
-metabat archea = not chmieric <br>
-* species level =0.9 <br>
-Concoct archea =  <br>
-* kingdom, phylum, class = chimeric
-* After class it isnt marked as chimeric, because the groups have not been named yet
-* <u>Explain what a chimeric bin is in your own words</u><br>
-  A chimeric bin contains a MAG that is created from more than one genome. So a mixture of at least two different species
+* metabat archea: not chimeric <br>
+  * species level =0.9 <br>
+* Concoct archea: chimeric  <br>
+  * kingdom, phylum, class = chimeric
+  * After class it isnt marked as chimeric, because the groups have not been named yet
 
-### Manual bin refinement
-*Only for the non chimeric bins*
-Remove the redundant parts through the interactive anvio interface, by pre-selecting the better MAGs (<70% completeness)
-`Before starting, create a copy/backup of the unrefinde bins in ARCHEA_BIN_REFINEMENT.` The manual refinement will overwrite the unrefined files.
+<u>Explain what a chimeric bin is in your own words</u><br>
+  A chimeric bin contains a MAG that is created from more than one genome. So a mixture of at least two different species.
+
+### 1.6.2 Manual bin refinement
+*Only for the non chimeric bins.* <br>
+The redundant parts were removed through the interactive anvio interface, by pre-selecting the better MAGs (<70% completeness). <br>
+`Before starting, a copy/backup of the unrefinde bins was created in ARCHEA_BIN_REFINEMENT.` Because the manual refinement will overwrite the unrefined files.
+
+Run directly in the console:
 ```
 srun --reservation=biol217 --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 /bin/bash
 ```
@@ -355,7 +355,7 @@ Note the accessed node
 ```
 anvi-refine -c ./4_mapping/contigs.db -C consolidated_bins -p ./5_anvio_profiles/merged_profiles/PROFILE.db --bin-id Bin_METABAT__25
 ```
-open a new terminal, not logged into CAUcluster
+Open a new terminal, not logged into CAUcluster
 ```
 ssh -L 8060:localhost:8080 sunam236@caucluster-old.rz.uni-kiel.de
 ssh -L 8080:localhost:8080 node010
@@ -369,7 +369,7 @@ Open in a browser:  http://127.0.0.1:8060/
     * After:  Comp.:93.4   Red.:5.3
     * after removing some bins clustered by difference, the composition reduced but the redundancy stayed the same. So visually the quality increases, but the redundancy score did not reduce.
 * <u>Explain what a chimeric bin is in your own words</u><br>
-  A chimeric bin contains a MAG that is created from more than one genome. So a mixture of at least two different species
+  A chimeric bin contains a MAG that is created from more than one genome. So a mixture of at least two different species.
 ![image](images/Refining_Bin_METABAT__25_from__consolidated_bins.svg)
 
 **<u>Question 7**: <br> 
@@ -377,38 +377,41 @@ Open in a browser:  http://127.0.0.1:8060/
   * Metabat: 1.76 | 1.14 | 0.58
   * Concoct: 0.96 | 0.00 | 0.40
 * <u>you can also use anvi-inspect -p -c, anvi-script-get-coverage-from-bam or, anvi-profile-blitz. Please look up the help page for each of those commands and construct the appropriate command line</u><br>
-
-### Taxonomic assignment
-Add taxonomic annotations to the MAGs through the single copy core genes (SCGs)
+```
+anvi-inspect -p ./5_anvio_profiles/merged_profiles/PROFILE.db  -c ./4_mapping/contigs.db --split-name
+```
+### 1.6.3 Taxonomic assignment
+Taxonomic annotations were added to the MAGs through the single copy core genes (SCGs):
 ```
 anvi-run-scg-taxonomy -c ./4_mapping/contigs.db -T 20 -P 2
 
 anvi-estimate-scg-taxonomy -c ./4_mapping/contigs.db --metagenome-mode
 ```
-estimate the abundance of rRNAs in  the dataset
+The abundance of rRNAs in the dataset was estimated:
 ```
 anvi-estimate-scg-taxonomy -c ./4_mapping/contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db --metagenome-mode --compute-scg-coverages --update-profile-db-with-taxonomy
 ```
-Save the output from the terminal:
+The output was saved from the terminal:
 ```
 anvi-estimate-scg-taxonomy -c ./4_mapping/contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db --metagenome-mode --compute-scg-coverages --update-profile-db-with-taxonomy > temp.txt
 ```
-Recieve one final summary of all the info from the consolidated bins
+Recieved one final summary of all the info from the consolidated bins
 ```
 anvi-summarize -c ./contigs.db -p ./5_anvio_profiles/merged_profiles/PROFILE.db -C consolidated_bins -o ./5_anvio_profiles/summary2 --just-do-it
 ```
-Rename bins_summary.txt to .tsv and open with libre office
+Renamed bins_summary.txt to .tsv and opened with libre office
 
 # 2. Pangenomics - comparing genomes
 ## 2.1 Evaluation of the starting databases 
-For the pangenomics a new set of contigs.dbs were used. They containg already prepared MAGs from the Biogasreactor and a complete Methanogen genome. 
+For pangenomics a new set of contigs.dbs were used. They contained already prepared MAGs from the Biogasreactor and a complete Methanogen genome. 
 
-Files were created for us in Day6: 
-* 02_contigs-dbs (enthält contigs)
+Files that were created for us in Day6: 
+* 02_contigs-dbs
 * 03_pangenome
 
 To compare the bins a summary overview was vizualized.<br>
-Get direct access to a HPC compute node
+For this direct access to a HPC compute node was aquired. <br>
+Enter directly in the console:
 ```
 srun --reservation=biol217 --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 /bin/bash
 ```
@@ -430,36 +433,37 @@ How do the MAGs compare in size and number of contigs to the full genome?</u><br
   * The bins are all smaller than the full Methano_mflavenscens genome. They differ from 1.3 mbp to 2.6 mb 
   * The contig number is much higher, since the full genome only cosists of 1 contig. Most of the contigs are > 2.5 kb 
   * The longest contigs vary between 14 kb and 65 kb (compared to 3.2 mb of the full genome) 
-  * HMM (single copy core genes) differ from 43 to 80. the complete genome contains 72 <br>
-  <u> Based on the contigs number, size and number of marker genes (HMM hits), which two MAGs are the best and which is the worst? </u> <br>
+  * HMM (single copy core genes) differ from 43 to 80. The complete genome contains 72. <br>
+
+<u> Based on the contigs number, size and number of marker genes (HMM hits), which two MAGs are the best and which are the worst? </u> <br>
 The worst MAGs are: <br>
 * 10 <br>
-    * Contains a lot of Contigs smaller than 2.5 kb<br>
-    * The least HMM archea hits <br>
-    * Shortest total length<br>
+  * Contains a lot of Contigs smaller than 2.5 kb<br>
+  * The least HMM archea hits <br>
+  * Shortest total length<br>
 * 5 <br>
-      * No approx. genome found <br>
-      * To few HMM hits <br>
-      * Alot of contigs below 2.5 kb<br>
+  * No approx. genome found <br>
+  * To few HMM hits <br>
+  * Alot of contigs below 2.5 kb<br>
  The best MAGs are: <br>
 * 13 <br>
-      * Most contigs above 20kb<br>
-      * Most archea HMM hits<br>
+  * Most contigs above 20kb<br>
+  * Most archea HMM hits<br>
 * 9 <br>
-      * Most contigs above 10 kb<br>
-      * Longest total length<br>
-      * Contains no approx. bacterial genome<br>
-## 2.2 Create pangenome 
-A Pangenome visualizes entire genomes for comparison. Comparison is based on essential and accessory gene clusters, phylogenetic relationships and genome qualities.
+  * Most contigs above 10 kb<br>
+  * Longest total length<br>
+  * Contains no approx. bacterial genome<br>
+## 2.2 Create a pangenome 
+A Pangenome visualizes entire genomes for comparison. The Comparison is based on essential and accessory gene clusters, phylogenetic relationships and genome qualities.
 ### 2.2.1 Create a external genome file
-First a "external genome file" needs to be created to input which genomes and MAGs should be used, as a table with two coloumns:
+First a "external genome file" needed to be created to input which genomes and MAGs should be used, as a table with two coloumns:
 
 | name          | contigs_db_path                   |
 | ------------- | --------------------------------- |
 | Bin1          | /path/to/contigs-bin-01-120311.db |
 | Genome-name   | /path/to/contigs-genome-name.db   |
 
-A anvio script can create the input information for us.
+A anvio script can create the input information.
 ```
 cd /03_pangenome/
 anvi-script-gen-genomes-file --input-dir ../02_contigs-dbs/ -o external_genomes.txt
@@ -473,31 +477,31 @@ name contigs_db_path
 Methano_Bin1 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin1.db Methano_Bin10 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin10.db Methano_Bin13 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin13.db Methano_Bin3 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin3.db Methano_Bin5 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin5.db Methano_Bin8 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin8.db Methano_Bin9 /work_beegfs/sunam236/Day6/02_contigs-dbs/Bin9.db Methano_Mflavescens /work_beegfs/sunam236/Day6/02_contigs-dbs/Mflavescens.db
 ```
 ### 2.2.2 Etsimate genome completeness
-The genome completeness is estimated to recieve information about the quality of the MAGs. The most important factors to assess the quality are **redundancy** and **completeness**
+The genome completeness was estimated to recieve information about the quality of the MAGs. The most important factors to assess the quality are **redundancy** and **completeness**
 ```
 anvi-estimate-genome-completeness -e external_genomes.txt -o ./genome-completeness.txt
 ```
 **<u>Question 9**: <br> 
 How do the bins compare to isolate genomes? Would you remove one, based on the output of the completeness estimation?</u><br>
 * The bins should show a lower completion rate and higher redundancy compared to isolated genomes, since the are unlikely to be as pure and continous.
-* All bins with a completion < 75% and redundancy >10 should be removed 
+* All bins with a completion < 75% and redundancy >10 should be removed <br>
 --> Methano_Bin10 + 5
 ### 2.2.3 Remove unwanted genomes
-The previously detected unwanted MAGs (completion <70% & redundancy >10%) can be directly removed from the folder. For this create a new folder in the 02_contig-dbs directory called "discarded" and move the unwanted MAGs into it.
+The previously detected unwanted MAGs (completion <70% & redundancy >10%) were directly removed from the folder. For this a new folder was created in the 02_contig-dbs directory called "discarded" and the unwanted MAGs were moved into it.
 ```
 cd ../02_contigs-dbs/
 mkdir discarded
 mv Bin10.db Bin5.db  ./discarded/
 ```
-Afterwards proceed with the "good" MAGs. <br> Create a new external-genomes output for the updated bins.
+Afterwards proceeded with the "good" MAGs. <br> A new external-genomes output was created for the updated bins.
 ```
 cd ../03_pangenome/
 anvi-script-gen-genomes-file --input-dir ../02_contigs-dbs/ -o external_genomes_final.txt
 ```
 ## 2.3 Create Pangenome database
-In Anvi'o two artifacts need to be created (similar to working with assemblies). 
+In Anvi'o two artifacts needed to be created (similar to working with assemblies). 
 
-The first one is `genomes-storage.db`file, which merges all genomes into one database, making it easier to work with and publish. <br> The database contains:
+The first one was a `genomes-storage.db` file, which merges all genomes into one database, making it easier to work with and publish. <br> The database contains:
 1. All genome fasta files
 2. The gene annotations (HMMs, SCGs) added before
 3. Any new annotations and genome comparisons made afterwards
@@ -507,7 +511,7 @@ The second file is the `pan-genome.db` (similar to the profile generated to anno
 2. Resolved gene cluster
 3. Any post-analysis of gene clusters, downstream analysis and visualisations.
 
-Both files are created within one script, with differt computing requirements from before. 
+Both files were created within one script, with differt computing requirements from before. 
 ```
 #!/bin/bash
 #SBATCH --nodes=1
@@ -534,10 +538,10 @@ anvi-pan-genome -g genomes_storage-GENOMES.db --project-name pangenome --num-thr
 jobinfo
 ```
 ## 2.4 Compare the data phylogenetically (ANI)
-Afterwards the genome similarity is calculated, most commonly the ***A***verage ***N***ucleotide ***I***dentity (ANI) with `MUMmer` to align each genome. This can be used to measure how related the genomes are and if a new species was discovered. <br>
-Species boundary: 95-96% identity over a 90% genome coverage
+Afterwards the genome similarity was calculated (the ***A***verage ***N***ucleotide ***I***dentity (ANI) with `MUMmer` to align each genome). <br> This was used to measure how related the genomes were and if a new species was discovered. <br>
+*Species boundary: 95-96% identity over a 90% genome coverage*
 
-Depending on the amount of genomes used, this can be very memory intensive, so more Memory needs to be assigned in the bashscript:
+Depending on the amount of genomes used, this can be very memory intensive, so more Memory needed to be assigned in the bashscript:
 ```
 #!/bin/bash
 #SBATCH --nodes=1
@@ -562,9 +566,10 @@ anvi-compute-genome-similarity --external-genomes external_genomes_final.txt --p
 #this prints the required resources into your logfile
 jobinfo
 ```
-Once the genome similarities are calculated, the interactive interface can be calculated
+Once the genome similarities were calculated, the interactive interface was calculated
 ## 2.5 Visualize the pangenome
-Direct access to a HPC node and run anvi-display-pan:
+Direct access to a HPC node to anvi-display-pan. <br>
+Run directly in the console:
 ```
 srun --pty --mem=10G --nodes=1 --tasks-per-node=1 --cpus-per-task=1 --reservation=biol217 --partition=all /bin/bash
 
@@ -577,8 +582,11 @@ Scroll to the top of the help and find out which INPUT FILES you need. Write the
 * Pangenome-PAN.db
 * genomes_storage-GENOMES.db
 * The -P flag declares the port number used (default 8080)
+```
+anvi-display-pan -p ./pangenome/Pangenome-PAN.db -g ./genomes_storage-GENOMES.db -P 8080
+```
 ## 2.6 Interprete and order the pangenome 
-Interprete and order the pangenome in the interactive interface. In this course it was done according to three tasks. 
+In this course interpreting and ordering the pangenome was done in the interactive interface. It was perfomed according to three tasks:
 
 **Task 1: Genome similarity**
 1. Remove combined homogeneity, functional homogeneity, geometric homogeneity, max num parsimonay, number of genes in gene cluster and number of genomes gene cluster has hits from the active view (by setting Height to 0)
@@ -596,13 +604,13 @@ They are pretty similar. Bin9 has most of the gene clusters of the reference gen
 When looking at some example genecluster alignments, Bin9 and the reference share most of the time the same sequence. Even in the SCG region
 
 <u>What ranges are used determine a prokaryotic species? How high can you go until you see changes in ANI? What does the ANI clustering tell you about genome relatedness? </u> <br>
-* The cut off for Prokaryotic species is 95%. <br>
-So Bin9 and refence seem to be one species. The other four differ from the reference, but share a species with each other. <br>
+* The cut off for prokaryotic species is 95%. <br>
+  * So Bin9 and refence seem to be one species. The other four differ from the reference, but share a species with each other. <br>
 * Differences within the clustered bins appear at 99%. <br>
-* 99.5%: Bin1 not related to the other
-* 99.6%: Bin13 related to 3 and 8, Bin8 and 3 loosely related
-* 99.7%: Only relatedness between Bin9 and reference
-The ANI clustering gives information about the approximate relatedness (higher percentage=higher approximate relatedness). 95% cutoff for the same species in prokaryotes.
+  * 99.5%: Bin1 not related to the other
+  * 99.6%: Bin13 related to 3 and 8, Bin8 and 3 loosely related
+  * 99.7%: Only relatedness between Bin9 and reference 
+* The ANI clustering gives information about the approximate relatedness (higher percentage=higher approximate relatedness).
 
 **Task 2: Functional Profiling**
 1. Using the Search Function, highlight all genes in the KEGG Module for Methanogenesis
@@ -626,8 +634,7 @@ But there is only one methanogenesis gene in the region only available in the re
 **<u>Question 13**: <br> 
 What observations can you make regarding the geometric homogeneity between all genomes and the functional homogeneity?</u><br>
 * 20 Genes match the search parameters. All of them are in the previously marked SCGs regions.
-* The functions should not be impaired, since SCGs are highly conserved, due to their very important and essential functionality
-* The aminoacid structe differs though, but probably not effecting the polarity or structure in the protein
+* The functions should not be impaired, since SCGs are highly conserved, due to their very important and essential functionality. The aminoacid structure differ, which is probably not effecting the polarity or structure in the protein
   * M.flavescens and Bin 9 differ from the other four. They share the same SNPs, deletions, or insetions compared to the other four bins
 ## 2.7 BlastKOALA (Bonus)
 Besides Anvi'o there are a lot of tools available for metabolism investigations. BlastKOALA is one of them, which creates a metabolic profile of the genome based on KEGG database. 
@@ -642,12 +649,13 @@ Can the organism do methanogenesis? Does it have genes similar to a bacterial se
 
 ![image](images/Secretion.png)
 
-
-# 3. RNA-Seq analysis DAY7!!!!!!!!!!!!!!!!!!!
+-----------------------------------------
+----------------------------------------
+# 3. RNA-Seq analysis 
 ## 3.1 Download the Data
 The dataset used came from a publication by `Prasse et al. 2017`. 
 
-Find the SRR number from the paper to download:
+To download the data used in the paper the SRR number was used:
 ```
 conda activate /home/sunam226/.conda/envs/grabseq
 grabseqs -t 4 -m ./metadata.csv SRR4018514 SRR4018515 SRR4018516 SRR4018517
@@ -657,10 +665,18 @@ or download the entire project:
 conda activate /home/sunam226/.conda/envs/grabseq
 grabseqs -t 4 -m SRP081251
 ```
+Or download the data manually and put it in the respective folder
+
+**<u>Question 15**: <br> 
+How to find the SRR number from a paper?</u><br>
+* Search in the paper directly for SRR, or NCBI, or Accession with ctrl+f
+* Click the link
+* Look for a SRA or project numer
+* Click on each samples and look for SRR-Number <br>
 ## 3.2 Quality control (fastqc & fastp)
-Create a fastqc output folder and run `fastqc`. <br>
-Afterwards run `fastp`. <br>
-Run multiqc to see a summary of all files at once. <br>
+A fastqc output folder was created and `fastqc` was performed. <br>
+Afterwards `fastp` was run. <br>
+Multiqc was used to see a summary of all files at once. <br>
 ``` 
 mkdir ../qc_reports
 
@@ -671,123 +687,128 @@ for i in *.fastq.gz; do fastp -i $i -o ${i}_cleaned.fastq.gz -h ../qc_reports/${
 cd ..
 multiqc -d . -o ./qc_reports/multiqc_output 
 ```
-## 3.3 READemption
-`READemption` is a pipeline used for computational evaluation of RNA-Seq data. Since multiple steps take a while to complete, the entire pipeline will be run in one script. <br>
-The 
------------------------------
-here
------------------------------------
+## 3.3 READemption preperation
+`READemption` is a pipeline used for computational evaluation of RNA-Seq data. Since multiple different
+ steps take a while to complete, the entire pipeline will be run in one script. <br>
+The READemption pipeline is divided into 5 steps:
+1. **Create** a project folder and the required subfolders
 ```
 conda activate /home/sunam226/.conda/envs/reademption
 
 reademption create --project_path READemption_analysis --species salmonella="Salmonella Typhimurium"
 ```
-For us its methanosarcenia mazei
+This will create a folder structure as shown below. It contains both the input and the output folders.
+```
+READemption_analysis 
+├── config.json 
+├── input 
+│   ├── Salmonella_annotations 
+│   ├── Salmonella_reference_sequences 
+│   └── reads 
+└── output 
+    └── align 
+        ├── alignments 
+        ├── index 
+        ├── processed_reads 
+        ├── reports_and_stats 
+        │   ├── stats_data_json 
+        │   └── version_log.txt 
+        └── unaligned_reads 
+```
 
-Grab data from web: put it in FTP_Source variable
+2. **Prepare** the reference sequences and annotations 
+* Safe the general URL for *Salmonella typhimurium* SL1344 as the variable FTP_SOURCE. This makes it easier to access the URL in following codes
 ```
 FTP_SOURCE=ftp://ftp.ncbi.nih.gov/genomes/archive/old_refseq/Bacteria/Salmonella_enterica_serovar_Typhimurium_SL1344_uid86645/
 ```
+
+* Download the reference sequences (chromosome + 3 plasmids) as FASTA (.fa) files
 ```
 wget -O READemption_analysis/input/salmonella_reference_sequences/NC_016810.fa $FTP_SOURCE/NC_016810.fna
 wget -O READemption_analysis/input/salmonella_reference_sequences/NC_017718.fa $FTP_SOURCE/NC_017718.fna
 wget -O READemption_analysis/input/salmonella_reference_sequences/NC_017719.fa $FTP_SOURCE/NC_017719.fna
 wget -O READemption_analysis/input/salmonella_reference_sequences/NC_017720.fa $FTP_SOURCE/NC_017720.fna
 ```
-remove everything infront of the NZ-number in sublime text editor, than safe `or replace header with` <br> (annotation file + reference file need to look the same)
+
+* Download the genome annotation file (.gff3) and unzip it
+```
+wget -P READemption_analysis/input/salmonella_annotations https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/210/855/GCF_000210855.2_ASM21085v2/GCF_000210855.2_ASM21085v2_genomic.gff.gz
+
+gunzip READemption_analysis/input/salmonella_annotations/GCF_000210855.2_ASM21085v2_genomic.gff.gz
+```
+
+* Change the headers of the fasta files to the header of annotation file (annotation file + reference file need to look the same: Sequence ID first): 
+  * By hand: Remove everything infront of the NZ-number in sublime text editor, than safe.
+  * Or use command <br> 
 ```
 sed -i "s/>/>NC_016810.1 /" READemption_analysis/input/salmonella_reference_sequences/NC_016810.fa
 sed -i "s/>/>NC_017718.1 /" READemption_analysis/input/salmonella_reference_sequences/NC_017718.fa
 sed -i "s/>/>NC_017719.1 /" READemption_analysis/input/salmonella_reference_sequences/NC_017719.fa
 sed -i "s/>/>NC_017720.1 /" READemption_analysis/input/salmonella_reference_sequences/NC_017720.fa
 ```
+Check the files if the IDs are at the start and match
 
-Download annotation file
-```
-wget -P READemption_analysis/input/salmonella_annotations https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/210/855/GCF_000210855.2_ASM21085v2/GCF_000210855.2_ASM21085v2_genomic.gff.gz
-```
-
-Download the raw reads: <br>
+* Then download the RNA-Seq libraries containing the reads. To make analysis faster in the course, these librariers only contain subsamples of the original libraries
 ```
 wget -P READemption_analysis/input/reads http://reademptiondata.imib-zinf.net/InSPI2_R1.fa.bz2
 wget -P READemption_analysis/input/reads http://reademptiondata.imib-zinf.net/InSPI2_R2.fa.bz2
 wget -P READemption_analysis/input/reads http://reademptiondata.imib-zinf.net/LSP_R1.fa.bz2
 wget -P READemption_analysis/input/reads http://reademptiondata.imib-zinf.net/LSP_R2.fa.bz2
 ```
---------------------------------------------------
-# Run the pipeline
-
-create script: script_reademption.sh
+## 3.3 Run READemption pipeline
+Because multiple steps in the pipeline take a long time, everything is run in one script (displayed beneath the explanation of the different steps) 
+1. **Read processing:** remove the poly a tails with --poly_a_clipping
+2. **Mapping:** align the short reads to the reference sequence
+  * The result can be seen in `output/align` folder.
 ```
-#!/bin/bash
-#SBATCH --job-name=reademption
-#SBATCH --output=reademption.out
-#SBATCH --error=reademption.err
-#SBATCH --nodes=1
-#SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
-#SBATCH --qos=long
-#SBATCH --time=0-50:00:00
-#SBATCH --partition=all
-#SBATCH --export=NONE
-#SBATCH --reservation=biol217
-
-source ~/.bashrc
-
-#activating conda
-module load miniconda3/4.7.12.1
-conda activate /home/sunam226/.conda/envs/reademption
-reademption align -p 4 --poly_a_clipping --project_path READemption_analysis
-reademption coverage -p 4 --project_path READemption_analysis
-reademption gene_quanti -p 4 --features CDS,tRNA,rRNA --project_path READemption_analysis
-reademption deseq -l InSPI2_R1.fa.bz2,InSPI2_R2.fa.bz2,LSP_R1.fa.bz2,LSP_R2.fa.bz2 -c InSPI2,InSPI2,LSP,LSP -r 1,2,1,2 --libs_by_species salmonella=InSPI2_R1,InSPI2_R2,LSP_R1,LSP_R2 --project_path READemption_analysis
+$ reademption align --processes 4 --poly_a_clipping --project_path READemption_analysis.
+```
+3. **Coverage:** See how often each part of the reference sequence appears in the short reads.
+  * It is important to normalize the coverage across the genome, to reduce differences comming from library size and composition. 
+  * A foreward and reverse strand evaluation is performed (foreward=positiv values, reverse=negative vealues)
+  * Output files are stored as wiggle format (.wig) for genome browsers
+    * `READemption_analysis/output/species1_coverage-raw/` contains raw counting values without normalization
+    * `READemption_analysis/output/species1-tnoar_min_normalized/` contains coverage values normalized by total number of aligned reads (tnoar) multiplied by lowest number of aligned reads of all libraries
+    * `READemption_analysis/output/species1_coverage-tnoar_mil_normalized/` contains coverage values normalized by the total number of aligned reads multiplied by one million
+```
+reademption coverage -p 4 --project_path READemption_analysis --paired_end
+```
+4. **Gene wise quantification:** Compare the sequence reads to a genomic or transcriptomic reference sequence
+  * Quantify the numer of reads aligning with the annotations found in .gff3 file
+  * Output:
+    * `READemption_analysis/output/species1_gene_quanti_per_lib/` contains a coverage file for each sample showing the number of reads covering each entry of the annotations file
+    * `READemption_analysis/output/species1_gene_quanti_combined/` contains normalized coverage values of each sample combined into one file
+5. **Differential gene expression analysis** is perfomed by the R library DESeq2. It compares all conditions with each other and create a .scv file for each comparison. 
+  * Output in `READemption_analysis/output/salmonella_deseq/deseq_with_annotations/` 
+    * BaseMean: mean of normalized counts of all samples. *Note that it does not take into account gene length, it is used in DESeq2 to calculate the dispersion of a gene.*
+    * Log2FoldChange: Describes the difference when comparing two things. Fold change is calculated as the ratio of A/B or B/A with log2.
+```
+reademption deseq --libs InSPI2_R1.fa.bz2,InSPI2_R2.fa.bz2,LSP_R1.fa.bz2,LSP_R2.fa.bz2 -c InSPI2,InSPI2,LSP,LSP -r 1,2,1,2 --libs_by_species salmonella=InSPI2_R1,InSPI2_R2,LSP_R1,LSP_R2 project_path READemption_analysis
+```
+6. **Plot creation** to visualize the results. <br>
+```
 reademption viz_align --project_path READemption_analysis
+```
+Visualize the distribution of read length as histograms.
+* `input_read_length_distribution.pdf` before clipping
+* `processed_reads_length_distributions.pdf` after clipping 
+
+```
 reademption viz_gene_quanti --project_path READemption_analysis
+```
+viz_gene_quanti generates two documents:
+* `expression_scatter_plots.pdf` a scatter plot of the raw gene wise quantification values for each library pair
+* `rna_class_sizes.pdf` shows the proportion of the features selected in gene_quanti command
+
+```
 reademption viz_deseq --project_path READemption_analysis
-conda deactivate
-jobinfo
 ```
-```
-sbatch script_reademption.sh
-```
-------------------------Questions:
-# 7.1 Find the SRR number:
-* Search in the paper for SRR, NCBI, or Accession
-* Click the link
-* Look for a SRA or project numer
-*  Click on each samples and look for SRR-Number <br>
---> SRR, Nr. of spots, Nr. of bases, site, publication date stated
+viz_deseq generates 3 plots:
+* `MA_plot`: shows the log2fold changes (M) against the mean (A) of normalized counts for all the samples in the dataset (baseMean). Values coloured red have an adjusted p value padj <= 0.1.
+* 2 `volcano_plots`: show the log 2 fold change plotted against the -log transformed p value and against the -log transformed, adjusted p value.
+* 
 
-# DAY8
-# Day8
-
-## repeat the READemption pipeline from day7
-```
-cd /work_beegfs/sunam236/day8
-
-mkdir project_RNA_analysis_2
-
-conda activate /home/sunam226/.conda/envs/reademption
-```
-copy input reads from yetserday
-```
-cp ../../day7/project_RNA_analysis/READemption_analysis/input/reads/* ./READemption_analysis/input/reads/
-```
-Download Reference and annotations
-```
-wget -O READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fna.gz https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/007/065/GCF_000007065.1_ASM706v1/GCF_000007065.1_ASM706v1_genomic.fna.gz
-gunzip READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fna.gz
-mv READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fna READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fa
-#download annotations
-wget -P READemption_analysis/input/Methanosarcina_annotations https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/007/065/GCF_000007065.1_ASM706v1/GCF_000007065.1_ASM706v1_genomic.gff.gz
-gunzip READemption_analysis/input/Methanosarcina_annotations/GCF_000007065.1_ASM706v1_genomic.gff.gz
-```
-modify header of the sequence file
-```
-sed -i "s/>/>NC_003901.1 /" READemption_analysis/input/Methanosarcina_reference_sequences/GCF_000007065.1_ASM706v1_genomic.fa
-```
-create script: script_reademption.sh
+**Final Script**
 ```
 #!/bin/bash
 #SBATCH --job-name=pub_data
@@ -828,60 +849,36 @@ reademption viz_deseq --project_path READemption_analysis
 conda deactivate
 jobinfo
 ```
+
+# 4. R 
+
+**<u>Question 16**: <br> 
+Transfer iris from long to wide format</u><br>
 ```
-sbatch script_reademption.sh
+data("iris")
+iris_long<-tidyr::gather(iris, key='Species', value='log2FC')
 ```
 
+**<u>Question 17**: <br> 
+Upload 5 different graphs of trees</u><br>
+```
+data("trees")
 
-cp /home/sunam226/Day7/example_rna_seq/READemption_analysis/output/* cp /work_beegfs/sunam236/day8/output_sunam226/
------------------------------questions
-Transfer iris from long to wie format
-Upload 5 different graphs of trees
-
-trees<- data.frame(trees)
-View(trees)
-ggplot(data=trees, mapping=aes(Height, Volume)) + geom_boxplot()
-ggplot(data=trees, mapping=aes(Height, Volume)) + geom_jitter() 
-ggplot(data=trees, mapping=aes(Height, Volume, size=Girth, colour=Girth)) + geom_point()
-ggplot(data=trees, mapping=aes(Girth, as.factor(Volume))) + geom_dotplot()
-ggplot(data=trees, aes(x = Girth, y = Volume, color = Height)) + geom_line() + guides(color = guide_legend(title = "Height"))
-ggplot(data=trees, mapping=aes(Girth, Volume, fill=Height)) + geom_area()
-ggplot(data=trees, mapping=aes(Girth, Volume, colour=Height)) + geom_curve(xend=22, yend=80)
-
-plot_ly(data=trees,aes(x=Girth,y=Volume,z=Height, type="scatter3d",  mode="markers", color=Height)) +  geom_point() #braucht plotly
-
-+ facet_wrap()
-# Day9 
-# Day9
-library(readxl)
-df <- read_excel("R_heatmap_log2FC.xls", 
-                               sheet = "Sheet1")
+ggplot(data=trees, mapping=aes(Height, Volume))+geom_boxplot()+ggtitle("Trees Boxplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
+ggplot(data=trees, mapping=aes(Height, Volume)) + geom_jitter()+ggtitle("Trees Jitterplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank()) 
+ggplot(data=trees, mapping=aes(Height, Volume, size=Girth, colour=Girth)) + geom_point()+ggtitle("Trees Pointplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )
+ggplot(data=trees, mapping=aes(Girth, as.factor(Volume))) + geom_dotplot()+ggtitle("Trees Dotplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
+ggplot(data=trees, aes(x = Girth, y = Volume, color = Height)) + geom_line() + guides(color = guide_legend(title = "Height")) +ggtitle("Trees Lineplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
+```
+![image](images/trees_Boxplot.svg)
+![image](images/trees_Dotplot.svg)
+![image](images/trees_jitterplot.svg)
+![image](images/trees_lineplot.svg)
+![image](images/trees_pointplot.svg)
 
 
-ggplot(df, aes(seq_type,name, fill=log2fold_change))+geom_tile() +
-  scale_fill_gradient(low='#de3163', high='black') +
-  theme_linedraw() + 
-  labs( x = "Sequence type", y = "Gennames") +
-  guides(fill=guide_legend(title="Log to fold change")) +
-  ggtitle("Novel gene names") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-
-df_identifier<-read_excel("R_heatmap_identifier.xls", 
-           sheet = "Sheet1")
-df_identifier2<-tidyr::gather(iris, key='Identifier', value='log2FC')
-
-iris_long<-tidyr::gather(df_identifier, key='Species', value='log2FC')
-
-ggplot(df_identifier, aes(method,Identifier, fill=log2FC))+geom_tile() +
-  scale_fill_gradient(low='blue', high='white',) +
-  theme_linedraw() + 
-  labs( x = "mRNA", y = "Identifier") +
-  guides(fill=guide_legend(title="Log2FC")) +
-  ggtitle("Novel genes identifier") +
-  theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )
----------------------questions
-# csrA gene Infos
+# 5. Genome Browser
+## csrA gene Infos
 ![image](images/scrA.png)
 
 * Start codon
@@ -901,11 +898,11 @@ ggplot(df_identifier, aes(method,Identifier, fill=log2FC))+geom_tile() +
   * Yes, Ribosome coverage along the entwire genes
   * UTRs clearly visible next to it
 
-# Find a significantly differential expressed gene (wt/scrA Mutant)
+## Find a significantly differential expressed gene (wt/scrA Mutant)
 * Look at p-value <0.05 in table
 ![image](images/ribB.png)
 
-# create heatmaps from RNA+Ribo analysis
+## create heatmaps from RNA+Ribo analysis
 ![image](images/heatmap_names.png)
 ```
 ggplot(df, aes(seq_type,name, fill=log2fold_change))+geom_tile() +
