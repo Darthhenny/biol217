@@ -81,7 +81,7 @@ Unless specified otherwise all commands were run in a **miniconda environment**.
 
 -----------------------------
 ## 1.2 Pre-processing of the raw reads
-The raw read were copied into the working directory
+The raw reas were copied into the working directory
 ```
 mkdir /work_beegfs/sunam236/day2
 
@@ -103,7 +103,7 @@ done
 ```
 --------------------------------------
 ## 1.3 Assembling the reads into contigs/fasta
-The processed data were assembled using `Megahit`.
+The processed reas were assembled into contigs using `Megahit`.
 ```
 cd /work_beegfs/sunam236/day2/clean_reads
 
@@ -143,7 +143,7 @@ What is your N50 value?</u>
 * 57414
 
 <u>Whats is the total length of the contigs?</u>
-* 145675865 Bp = 145,7 Mbp
+* 145675865 Bp = 145,7 Mb
 
 ----------------------------------
 ## 1.5 Binning contigs into MAGs
