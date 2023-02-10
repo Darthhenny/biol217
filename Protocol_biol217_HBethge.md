@@ -651,6 +651,7 @@ Can the organism do methanogenesis? Does it have genes similar to a bacterial se
 
 -----------------------------------------
 ----------------------------------------
+
 # 3. RNA-Seq analysis 
 ## 3.1 Download the Data
 The dataset used came from a publication by `Prasse et al. 2017`. 
@@ -849,59 +850,36 @@ reademption viz_deseq --project_path READemption_analysis
 conda deactivate
 jobinfo
 ```
-
-# 4. R 
-
-**<u>Question 16**: <br> 
-Transfer iris from long to wide format</u><br>
-```
-data("iris")
-iris_long<-tidyr::gather(iris, key='Species', value='log2FC')
-```
-
-**<u>Question 17**: <br> 
-Upload 5 different graphs of trees</u><br>
-```
-data("trees")
-
-ggplot(data=trees, mapping=aes(Height, Volume))+geom_boxplot()+ggtitle("Trees Boxplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
-ggplot(data=trees, mapping=aes(Height, Volume)) + geom_jitter()+ggtitle("Trees Jitterplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank()) 
-ggplot(data=trees, mapping=aes(Height, Volume, size=Girth, colour=Girth)) + geom_point()+ggtitle("Trees Pointplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )
-ggplot(data=trees, mapping=aes(Girth, as.factor(Volume))) + geom_dotplot()+ggtitle("Trees Dotplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
-ggplot(data=trees, aes(x = Girth, y = Volume, color = Height)) + geom_line() + guides(color = guide_legend(title = "Height")) +ggtitle("Trees Lineplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
-```
-![image](images/trees_Boxplot.svg)
-![image](images/trees_Dotplot.svg)
-![image](images/trees_jitterplot.svg)
-![image](images/trees_lineplot.svg)
-![image](images/trees_pointplot.svg)
-
-
-# 5. Genome Browser
+## 3.4 Genome Browser
+Opened Ribo-seq and RNA-seq data in the **I**ntegrated **G**enome **B**rowser (IGB) to see the transciptomics and translatomics results. <br>
+The reference genome, as well as the gene annotations were loaded into the browser, to compare the generated mRNA to it.
 ## csrA gene Infos
+We looked at csrA in particular, because it was used in the paper. 
+
 ![image](images/scrA.png)
+csrA lays on the reverse strand (negative values). IT seems to be transcribed and translated in both wildtype and mutant, based on the coverage of mRNA and ribosome-bound RNA.
 
 * Start codon
   * ATG (reverse complemantary TAC)
 * Stop codon
   * TAA (reverse complementary ATT)
 * Aminoacid length
-  * start 2991371-2991185=186 bp
+  * 2991371-2991185=186 bp
   * 186 bp/3=62 AS
-  * 61 Aminoacids (stop is not a AA)
-  * mall protein because <70 AS
+  * stop-codon is not a AA, so -1 <br>
+-->61 Aminoacids
+  * small protein because <70 AS
 * its SD (consensus at -7 or -4)
   * Shine dalgano
 * The name of the upstream gene
   * upstream alaS
 * Is csrA translated?
-  * Yes, Ribosome coverage along the entwire genes
+  * Yes, Ribosome coverage along the entire genes
   * UTRs clearly visible next to it
-
 ## Find a significantly differential expressed gene (wt/scrA Mutant)
-* Look at p-value <0.05 in table
+* Look at p-value <0.05 in table <br>
+**ribB**
 ![image](images/ribB.png)
-
 ## create heatmaps from RNA+Ribo analysis
 ![image](images/heatmap_names.png)
 ```
@@ -913,3 +891,35 @@ ggplot(df, aes(seq_type,name, fill=log2fold_change))+geom_tile() +
   ggtitle("Novel gene names") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
+# 4. R 
+Near the end of the course, we had a small excourse into R, to learn how to handle data and properly create plots. 
+
+**<u>Question 16**: <br> 
+Transfer dataframe iris from long to wide format</u><br>
+```
+data("iris")
+
+iris_long<-tidyr::gather(iris, key='Species', value='log2FC')
+```
+
+**<u>Question 17**: <br> 
+Upload 5 different graphs of trees</u><br>
+```
+data("trees")
+
+box<-ggplot(data=trees, mapping=aes(Height, Volume))+geom_boxplot()+ggtitle("Trees Boxplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
+
+jit<-ggplot(data=trees, mapping=aes(Volume, Girth), colour=Height) + geom_jitter(color='darkred')+ggtitle("Trees Jitterplot")+theme(plot.title = element_text(hjust = 0.5,color='green'))
+
+pnt<-ggplot(data=trees, mapping=aes(Height, Volume, size=Girth)) + geom_point()+ggtitle("Trees Pointplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )+theme_bw()
+
+dot<-ggplot(data=trees, mapping=aes(Girth, as.factor(Volume))) + geom_dotplot()+ggtitle("Trees Dotplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())+theme_dark()
+
+lin<-ggplot(data=trees, aes(x = Girth, y = Volume, color = Height)) + geom_line() + guides(color = guide_legend(title = "Height")) +ggtitle("Trees Lineplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())+theme_bw()
+
+ggarrange(box, jit, pnt, dot, lin)
+```
+![image](images/trees_5plots.svg)
+
+

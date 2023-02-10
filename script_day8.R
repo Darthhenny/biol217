@@ -65,17 +65,19 @@ ggplot(data=iris, aes(Species, Petal.Length)) + geom_boxplot()
 #------------------------------------------------------
 trees<- data.frame(trees)
 View(trees)
-ggplot(data=trees, mapping=aes(Height, Volume)) + geom_boxplot()
-ggplot(data=trees, mapping=aes(Height, Volume)) + geom_jitter() 
-ggplot(data=trees, mapping=aes(Height, Volume, size=Girth, colour=Girth)) + geom_point()
-ggplot(data=trees, mapping=aes(Girth, as.factor(Volume))) + geom_dotplot()
-ggplot(data=trees, aes(x = Girth, y = Volume, color = Height)) + geom_line() + guides(color = guide_legend(title = "Height"))
-ggplot(data=trees, mapping=aes(Girth, Volume, fill=Height)) + geom_area()
+ggplot(data=trees, mapping=aes(Height, Volume))+geom_boxplot()+ggtitle("Trees Boxplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
+ggplot(data=trees, mapping=aes(Height, Volume)) + geom_jitter()+ggtitle("Trees Jitterplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank()) 
+ggplot(data=trees, mapping=aes(Height, Volume, size=Girth, colour=Girth)) + geom_point()+ggtitle("Trees Pointplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )
+ggplot(data=trees, mapping=aes(Girth, as.factor(Volume))) + geom_dotplot()+ggtitle("Trees Dotplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
+ggplot(data=trees, aes(x = Girth, y = Volume, color = Height)) + geom_line() + guides(color = guide_legend(title = "Height")) +ggtitle("Trees Lineplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
+?facet_wrap
+
+ggplot(data=trees, mapping=aes(Girth, Volume, fill=Height)) + geom_area()+ facet_wrap(~align)
 ggplot(data=trees, mapping=aes(Girth, Volume, colour=Height)) + geom_curve(xend=22, yend=80)
 
 plot_ly(data=trees,aes(x=Girth,y=Volume,z=Height, type="scatter3d",  mode="markers", color=Height)) +  geom_point() #braucht plotly
 
-+ facet_wrap()
+a + facet_wrap(~align)
 #-----------------------------------------
 setRepositories() #then enter all repo: 1 2 3 4 5 6 7 Enter
 
@@ -101,7 +103,8 @@ df_identifier<-read_excel("R_heatmap_identifier.xls",
            sheet = "Sheet1")
 df_identifier2<-tidyr::gather(iris, key='Identifier', value='log2FC')
 
-iris_long<-tidyr::gather(df_identifier, key='Species', value='log2FC')
+data("iris")
+iris_long<-tidyr::gather(iris, key='Species', value='log2FC')
 
 ggplot(df_identifier, aes(method,Identifier, fill=log2FC))+geom_tile() +
   scale_fill_gradient(low='blue', high='white',) +
