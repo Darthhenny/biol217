@@ -114,5 +114,14 @@ ggplot(df_identifier, aes(method,Identifier, fill=log2FC))+geom_tile() +
   ggtitle("Novel genes identifier") +
   theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )
 
+--------------------------------------
+  
+box<-ggplot(data=trees, mapping=aes(Height, Volume))+geom_boxplot()+ggtitle("Trees Boxplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())
+jit<-ggplot(data=trees, mapping=aes(Volume, Girth), colour=Height) + geom_jitter(color='darkred')+ggtitle("Trees Jitterplot")+theme(plot.title = element_text(hjust = 0.5,color='green'))
+pnt<-ggplot(data=trees, mapping=aes(Height, Volume, size=Girth)) + geom_point()+ggtitle("Trees Pointplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank() )+theme_bw()
+dot<-ggplot(data=trees, mapping=aes(Girth, as.factor(Volume))) + geom_dotplot()+ggtitle("Trees Dotplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())+theme_dark()
+lin<-ggplot(data=trees, aes(x = Girth, y = Volume, color = Height)) + geom_line() + guides(color = guide_legend(title = "Height")) +ggtitle("Trees Lineplot")+theme(plot.title = element_text(hjust = 0.5), axis.text.y=element_blank())+theme_bw()
+ggarrange(box, jit, pnt, dot, lin)
 
-
+dot
+jit

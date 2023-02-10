@@ -81,7 +81,7 @@ Unless specified otherwise all commands were run in a **miniconda environment**.
 
 -----------------------------
 ## 1.2 Pre-processing of the raw reads
-The raw reas were copied into the working directory
+The raw reads were copied into the working directory
 ```
 mkdir /work_beegfs/sunam236/day2
 
@@ -103,7 +103,7 @@ done
 ```
 --------------------------------------
 ## 1.3 Assembling the reads into contigs/fasta
-The processed reas were assembled into contigs using `Megahit`.
+The processed reads were assembled into contigs using `Megahit`.
 ```
 cd /work_beegfs/sunam236/day2/clean_reads
 
